@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Consulcar - Consultoria em Importação Automóvel. Encontre, importe e legalize o carro dos seus sonhos com total segurança e transparência.">
+    <title>Consulcar | Importação Automóvel</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="navbar">
+        <div class="container nav-content">
+            <div class="logo">Consul<span>car</span></div>
+            <nav>
+                <ul>
+                    <li><a href="#sobre">O Serviço</a></li>
+                    <li><a href="#pedido">Fazer Pedido</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="container hero-content">
+                <h1>O teu próximo carro, <br><span class="gradient-text">sem fronteiras.</span></h1>
+                <p>Especialistas em consultoria e importação automóvel. Tratamos de toda a pesquisa, negociação, transporte e legalização para que só tenhas de te preocupar em conduzir.</p>
+                <div class="hero-actions">
+                    <a href="#pedido" class="btn btn-primary">Iniciar Pedido</a>
+                    <a href="#sobre" class="btn btn-secondary">Saber Mais</a>
+                </div>
+            </div>
+            <div class="hero-bg">
+                <div class="glow glow-1"></div>
+                <div class="glow glow-2"></div>
+            </div>
+        </section>
+
+        <section id="sobre" class="about">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Como <span class="gradient-text">Funciona</span></h2>
+                    <p>Um serviço premium, transparente e focado nas tuas necessidades.</p>
+                </div>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">🔍</div>
+                        <h3>Pesquisa Personalizada</h3>
+                        <p>Diz-nos o que procuras. Procuramos no mercado nacional e internacional as melhores oportunidades que se enquadram no teu perfil e orçamento.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🛡️</div>
+                        <h3>Análise e Segurança</h3>
+                        <p>Avaliamos o histórico, quilometragem e estado geral das viaturas antes de qualquer compromisso. Garantimos que fazes um negócio seguro.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">📄</div>
+                        <h3>Burocracia Zero</h3>
+                        <p>Desde o transporte internacional até à legalização, ISV e emissão de matrícula. Tratamos de todo o processo burocrático de forma célere.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="pedido" class="request-form-section">
+            <div class="container">
+                <div class="form-wrapper glassmorphism">
+                    <div class="form-header">
+                        <h2>Encontra o teu <span class="gradient-text">Automóvel</span></h2>
+                        <p>Preenche o formulário abaixo com os detalhes da viatura que pretendes. Quantos mais detalhes forneceres, mais precisa será a nossa pesquisa.</p>
+                    </div>
+                    <form id="car-request-form">
+                        <div class="form-section-title">Dados de Contacto</div>
+                        
+                        <div class="form-group-row">
+                            <div class="form-group">
+                                <label>Tipo de Entidade *</label>
+                                <div class="radio-group">
+                                    <label class="radio-label">
+                                        <input type="radio" name="entity_type" value="individual" checked>
+                                        <span>Individual</span>
+                                    </label>
+                                    <label class="radio-label">
+                                        <input type="radio" name="entity_type" value="coletiva">
+                                        <span>Coletiva (Empresa)</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="form-group" id="company-name-group" style="display: none;">
+                                <label for="company_name">Designação Social *</label>
+                                <input type="text" id="company_name" name="company_name" placeholder="Ex: Consulcar Lda">
+                            </div>
+                        </div>
+
+                        <div class="form-group-row" id="contact-name-row">
+                            <div class="form-group" style="width: 100%;">
+                                <label for="contact_name">Nome de Contacto *</label>
+                                <input type="text" id="contact_name" name="contact_name" placeholder="O seu nome" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group-row">
+                            <div class="form-group">
+                                <label for="email">Email *</label>
+                                <input type="email" id="email" name="email" placeholder="email@exemplo.com" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="phone">Contacto Telefónico *</label>
+                                <input type="tel" id="phone" name="phone" placeholder="+351 912 345 678" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group-row">
+                            <div class="form-group">
+                                <label>Meio Preferencial de Contacto *</label>
+                                <div class="checkbox-group">
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" name="contact_pref[]" value="email" checked>
+                                        <span>Email</span>
+                                    </label>
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" name="contact_pref[]" value="telefone">
+                                        <span>Telefone</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="contact_time">Horário Preferencial *</label>
+                                <select id="contact_time" name="contact_time" required class="form-select">
+                                    <option value="" disabled selected>Selecione um horário...</option>
+                                    <option value="morning">Manhã (09:00 - 13:00)</option>
+                                    <option value="afternoon">Tarde (14:00 - 19:00)</option>
+                                    <option value="evening">Pós-laboral (Após as 19:00)</option>
+                                    <option value="anytime">Qualquer horário</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-section-title">Detalhes da Viatura</div>
+
+                        <div class="form-group">
+                            <label for="urgency">Nível de Urgência do Pedido *</label>
+                            <select id="urgency" name="urgency" required class="form-select">
+                                <option value="" disabled selected>Selecione a urgência...</option>
+                                <option value="prioritario">Prioritário (O mais rápido possível)</option>
+                                <option value="alto">Alto (1 a 2 semanas)</option>
+                                <option value="medio">Médio (Dentro de 1 mês)</option>
+                                <option value="baixo">Baixo (Sem pressa)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group-row">
+                            <div class="form-group">
+                                <label for="brand">Marca *</label>
+                                <input type="text" id="brand" name="brand" placeholder="Ex: BMW, Mercedes-Benz, Porsche" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="model">Modelo *</label>
+                                <input type="text" id="model" name="model" placeholder="Ex: Série 3, Classe C, 911" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="extras">Extras e Especificações Desejadas</label>
+                            <textarea id="extras" name="extras" rows="4" placeholder="Ex: Pacote Desportivo, Teto de abrir, Bancos em pele, Sistema de som premium..."></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Links de Viaturas (Opcional)</label>
+                            <p class="field-desc">Viste algum carro que te interessa no Mobile.de, Standvirtual ou outro site? Cola o link aqui.</p>
+                            <div id="links-container">
+                                <div class="link-input-wrapper">
+                                    <input type="url" name="links[]" placeholder="https://..." class="link-input">
+                                </div>
+                            </div>
+                            <button type="button" id="add-link-btn" class="btn-text">+ Adicionar outro link</button>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Ficheiros de Exemplo (Opcional)</label>
+                            <p class="field-desc">Anexa fotografias de carros semelhantes ao que procuras ou documentos relevantes.</p>
+                            <div class="file-upload-wrapper" id="drop-zone">
+                                <input type="file" id="files" name="files" multiple accept="image/*,.pdf">
+                                <div class="upload-content">
+                                    <span class="upload-icon">📁</span>
+                                    <span class="upload-text">Clica para enviar ficheiros ou arrasta para aqui</span>
+                                </div>
+                            </div>
+                            <div id="file-list" class="file-list"></div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary btn-block">Enviar Pedido de Consultoria</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container footer-content">
+            <div class="logo">Consul<span>car</span></div>
+            <p>&copy; 2026 Consulcar. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
