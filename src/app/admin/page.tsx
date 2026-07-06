@@ -126,7 +126,11 @@ export default function AdminPage() {
       if (data.image) setCarImage(data.image);
       if (data.description) setCarDesc(data.description);
       
-      setStatus("Dados importados com sucesso! Verifique e ajuste os campos antes de guardar.");
+      if (data.equipment && Array.isArray(data.equipment) && data.equipment.length > 0) {
+        setEquipment(data.equipment);
+      }
+      
+      setStatus("Dados importados e traduzidos com sucesso! Verifique e ajuste os campos antes de guardar.");
     } catch (error: any) {
       setStatus(`Erro: ${error.message}`);
     } finally {

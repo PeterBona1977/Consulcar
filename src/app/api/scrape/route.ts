@@ -3,6 +3,21 @@ import * as cheerio from 'cheerio';
 
 export const runtime = 'edge';
 
+// Função para traduzir texto usando a API gratuita do Google Translate
+async function translateText(text: string): Promise<string> {
+  if (!text || text.trim() === '') return text;
+  try {
+    const response = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=pt&dt=t&q=${encodeURIComponent(text)}`);
+    const data = await response.json();
+    if (data && data[0]) {
+      return data[0].map((item: any) => item[0]).join('');
+    }
+  } catch (e) {
+    console.error('Erro na tradução:', e);
+  }
+  return text;
+}
+
 export async function POST(request: Request) {
   try {
     const { url } = await request.json();
@@ -57,17 +72,38 @@ export async function POST(request: Request) {
                 $('.h3.u-text-bold').first().text().trim() || // Mobile.de
                 'Sob Consulta';
 
+    // Extrair equipamentos / extras (Genérico para Mobile.de / Standvirtual)
+    const equipment: string[] = [];
+    $('.bullet-list li, #features-bullet-list li, .g-col-12 ul li, .listing-features li, .vehicle-features li, .c-box--content li').each((i, el) => {
+      const text = $(el).text().trim();
+      if (text && text.length < 50 && text.length > 2 && !equipment.includes(text)) {
+        equipment.push(text);
+      }
+    });
+
     // Cleanup text
     title = title.replace(' - Standvirtual', '').replace(' no Standvirtual', '').trim();
     if (price !== 'Sob Consulta') {
       price = price.replace(/[^0-9,€ ]/g, '').trim() + ' €';
     }
 
+    // --- Tradução Automática ---
+    const translatedDescription = await translateText(description);
+    
+    let translatedEquipment = equipment;
+    if (equipment.length > 0) {
+      // Juntar com separador para traduzir tudo numa só chamada à API
+      const joinedText = equipment.join(' || ');
+      const translatedJoined = await translateText(joinedText);
+      translatedEquipment = translatedJoined.split(' || ').map(e => e.trim()).filter(e => e.length > 0);
+    }
+
     return NextResponse.json({
       title: title || 'Viatura Desconhecida',
       image: image || 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&q=80&w=1000', // Premium fallback image
-      description: description,
+      description: translatedDescription,
       price: price,
+      equipment: translatedEquipment,
       originalUrl: url
     });
 
