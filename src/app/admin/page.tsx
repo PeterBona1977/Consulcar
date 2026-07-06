@@ -30,6 +30,7 @@ export default function AdminPage() {
   const [equipment, setEquipment] = useState<string[]>(['']);
   
   const [status, setStatus] = useState("");
+  const [isScraping, setIsScraping] = useState(false);
 
   // Gestão de Viaturas
   const [publishedVehicles, setPublishedVehicles] = useState<any[]>([]);
@@ -102,6 +103,35 @@ export default function AdminPage() {
       }
     });
     // Omitido para não complicar excessivamente o protótipo.
+  };
+
+  const handleFetchDataFromUrl = async () => {
+    if (!carOriginalUrl) {
+      alert("Por favor, insira o URL primeiro.");
+      return;
+    }
+    setIsScraping(true);
+    setStatus("A importar dados da viatura...");
+    try {
+      const res = await fetch('/api/scrape', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: carOriginalUrl })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Erro ao extrair dados');
+      
+      if (data.title) setCarTitle(data.title);
+      if (data.price) setCarPrice(data.price);
+      if (data.image) setCarImage(data.image);
+      if (data.description) setCarDesc(data.description);
+      
+      setStatus("Dados importados com sucesso! Verifique e ajuste os campos antes de guardar.");
+    } catch (error: any) {
+      setStatus(`Erro: ${error.message}`);
+    } finally {
+      setIsScraping(false);
+    }
   };
 
   const handleSaveVehicle = async (e: React.FormEvent) => {
@@ -181,7 +211,12 @@ export default function AdminPage() {
                 </div>
                 <div>
                   <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>URL do Anúncio Original</label>
-                  <input value={carOriginalUrl} onChange={e=>setCarOriginalUrl(e.target.value)} type="text" style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '6px' }} placeholder="https://mobile.de/..." />
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <input value={carOriginalUrl} onChange={e=>setCarOriginalUrl(e.target.value)} type="text" style={{ flex: 1, padding: '10px', border: '1px solid #ccc', borderRadius: '6px' }} placeholder="https://mobile.de/..." />
+                    <button type="button" onClick={handleFetchDataFromUrl} disabled={isScraping} style={{ padding: '10px 15px', background: '#00d2ff', color: 'black', fontWeight: 'bold', border: 'none', borderRadius: '6px', cursor: isScraping ? 'not-allowed' : 'pointer' }}>
+                      {isScraping ? 'A extrair...' : 'Extrair Dados'}
+                    </button>
+                  </div>
                 </div>
               </div>
 
