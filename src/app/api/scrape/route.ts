@@ -33,8 +33,8 @@ export async function POST(request: Request) {
       }
       
       // Utiliza o ScraperAPI para contornar o Datadome/Cloudflare Anti-Bot
-      // Removemos o &render=true para ser muito mais rápido e evitar timeouts na Cloudflare Edge (que mata requests longos com 500 error)
-      fetchUrl = `https://api.scraperapi.com/?api_key=${SCRAPER_API_KEY}&url=${encodeURIComponent(url)}`;
+      // É obrigatório usar premium=true para domínios altamente protegidos como o mobile.de
+      fetchUrl = `https://api.scraperapi.com/?api_key=${SCRAPER_API_KEY}&url=${encodeURIComponent(url)}&premium=true`;
       fetchOptions = {}; // O serviço de proxy trata dos headers e fingerprinting
     }
 
