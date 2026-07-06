@@ -11,28 +11,36 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'O URL é obrigatório' }, { status: 400 });
     }
 
-    // Attempt to fetch the website HTML
-    // We use a common User-Agent to prevent basic bot-blocking
-    const response = await fetch(url, {
+    // Integração com serviço de Proxy Anti-Bot para Produção (ex: ScraperAPI)
+    // O Cloudflare Edge não suporta Puppeteer, portanto o scraping direto do Mobile.de é bloqueado.
+    // É necessária uma chave API configurada nas variáveis de ambiente do Cloudflare.
+    const SCRAPER_API_KEY = process.env.SCRAPER_API_KEY;
+    
+    let fetchUrl = url;
+    let fetchOptions: RequestInit = {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
         'Accept-Language': 'pt-PT,pt;q=0.9,en-US;q=0.8,en;q=0.7',
       }
-    });
+    };
+
+    if (url.includes('mobile.de') || url.includes('standvirtual.com')) {
+      if (!SCRAPER_API_KEY) {
+        return NextResponse.json({ 
+          error: 'Para extrair dados do Mobile.de em produção no Cloudflare, configure a variável de ambiente SCRAPER_API_KEY com a sua chave do ScraperAPI.' 
+        }, { status: 403 });
+      }
+      
+      // Utiliza o ScraperAPI para contornar o Datadome/Cloudflare Anti-Bot
+      fetchUrl = `https://api.scraperapi.com/?api_key=${SCRAPER_API_KEY}&url=${encodeURIComponent(url)}&render=true`;
+      fetchOptions = {}; // O serviço de proxy trata dos headers e fingerprinting
+    }
+
+    const response = await fetch(fetchUrl, fetchOptions);
 
     if (!response.ok) {
-      // Se for um site conhecido por bloquear bots (Datadome/Cloudflare)
-      if (url.includes('mobile.de') || url.includes('standvirtual.com')) {
-         return NextResponse.json({
-            title: 'Exemplo: Hyundai Tucson 1.6 T-GDI PHEV 4WD Prime',
-            image: 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=1000',
-            description: '[NOTA: Dados simulados porque o Mobile.de / Standvirtual possui forte proteção Anti-Bot. Para uso real em produção, seria necessário usar um serviço proxy como o ScraperAPI.] Viatura em excelente estado com teto panorâmico e pacote Prime.',
-            price: '38.900 €',
-            originalUrl: url
-         });
-      }
-      throw new Error(`Erro HTTP: ${response.status}`);
+      throw new Error(`Erro HTTP: ${response.status} ao contactar ${fetchUrl}`);
     }
 
     const html = await response.text();
