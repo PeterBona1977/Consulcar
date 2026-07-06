@@ -31,13 +31,28 @@ export default function AdminPage() {
   
   const [status, setStatus] = useState("");
 
+  // Gestão de Viaturas
+  const [publishedVehicles, setPublishedVehicles] = useState<any[]>([]);
+
   useEffect(() => {
     fetchDictionary();
+    fetchPublishedVehicles();
   }, []);
 
   const fetchDictionary = async () => {
     const { data } = await supabase.from('import_dictionary').select('*').order('created_at', { ascending: false });
     if (data) setDictionary(data);
+  };
+
+  const fetchPublishedVehicles = async () => {
+    const { data } = await supabase.from('vehicles').select('*').order('created_at', { ascending: false });
+    if (data) setPublishedVehicles(data);
+  };
+
+  const handleDeleteVehicle = async (id: string) => {
+    if (!confirm("Tem a certeza que deseja apagar esta viatura?")) return;
+    await supabase.from('vehicles').delete().eq('id', id);
+    fetchPublishedVehicles();
   };
 
   const handleAddDict = async (e: React.FormEvent) => {
@@ -122,6 +137,7 @@ export default function AdminPage() {
       setStatus("Viatura publicada com sucesso! Os equipamentos conhecidos foram traduzidos automaticamente.");
       setCarTitle(""); setCarPrice(""); setCarImage(""); setCarDesc(""); setCarOriginalUrl("");
       setSpecs([{key: '', value: ''}]); setEquipment(['']);
+      fetchPublishedVehicles();
     }
   };
 
@@ -132,6 +148,9 @@ export default function AdminPage() {
         <div style={{ display: 'flex', borderBottom: '1px solid #ddd', background: '#111' }}>
           <button onClick={() => setActiveTab('viaturas')} style={{ flex: 1, padding: '20px', background: activeTab === 'viaturas' ? '#222' : '#111', color: 'white', border: 'none', cursor: 'pointer', fontSize: '1.1rem', fontWeight: 'bold' }}>
             🚘 Nova Viatura
+          </button>
+          <button onClick={() => setActiveTab('gestao')} style={{ flex: 1, padding: '20px', background: activeTab === 'gestao' ? '#222' : '#111', color: 'white', border: 'none', cursor: 'pointer', fontSize: '1.1rem', fontWeight: 'bold' }}>
+            📋 Viaturas Publicadas
           </button>
           <button onClick={() => setActiveTab('dicionario')} style={{ flex: 1, padding: '20px', background: activeTab === 'dicionario' ? '#222' : '#111', color: 'white', border: 'none', cursor: 'pointer', fontSize: '1.1rem', fontWeight: 'bold' }}>
             🧠 Dicionário Inteligente
@@ -204,6 +223,45 @@ export default function AdminPage() {
                 <button type="submit" style={{ padding: '15px 30px', background: '#000', color: 'white', border: 'none', borderRadius: '8px', fontSize: '1.1rem', cursor: 'pointer' }}>Gravar Viatura e Traduzir</button>
               </div>
             </form>
+          )}
+
+          {/* TAB GESTÃO DE VIATURAS */}
+          {activeTab === 'gestao' && (
+            <div>
+              <h2 style={{ marginBottom: '20px' }}>Viaturas Publicadas</h2>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                <thead>
+                  <tr style={{ background: '#eee' }}>
+                    <th style={{ padding: '12px' }}>Imagem</th>
+                    <th style={{ padding: '12px' }}>Título</th>
+                    <th style={{ padding: '12px' }}>Preço</th>
+                    <th style={{ padding: '12px', width: '150px' }}>Ações</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {publishedVehicles.map(v => (
+                    <tr key={v.id} style={{ borderBottom: '1px solid #eee' }}>
+                      <td style={{ padding: '12px' }}>
+                        {v.image ? (
+                          <img src={v.image} alt={v.title} style={{ width: '80px', height: '60px', objectFit: 'cover', borderRadius: '4px' }} />
+                        ) : (
+                          <div style={{ width: '80px', height: '60px', background: '#ccc', borderRadius: '4px' }}></div>
+                        )}
+                      </td>
+                      <td style={{ padding: '12px', fontWeight: 'bold' }}>{v.title}</td>
+                      <td style={{ padding: '12px' }}>{v.price}</td>
+                      <td style={{ padding: '12px' }}>
+                        <Link href={`/viaturas/${v.id}`} target="_blank" style={{ display: 'inline-block', padding: '6px 12px', background: '#e3f2fd', color: '#1565c0', textDecoration: 'none', borderRadius: '4px', marginRight: '10px' }}>Ver</Link>
+                        <button onClick={() => handleDeleteVehicle(v.id)} style={{ padding: '6px 12px', background: '#ffebee', color: '#c62828', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Apagar</button>
+                      </td>
+                    </tr>
+                  ))}
+                  {publishedVehicles.length === 0 && (
+                    <tr><td colSpan={4} style={{ padding: '20px', textAlign: 'center', color: '#888' }}>Nenhuma viatura publicada.</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           )}
 
           {/* TAB DICIONÁRIO */}
