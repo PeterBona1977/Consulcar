@@ -47,9 +47,14 @@ export async function POST(request: Request) {
         }, { status: 403 });
       }
       
-      // Utiliza o ZenRows para contornar o Datadome Anti-Bot
-      // Usamos premium_proxy=true e antibot=true que vêm incluídos no Trial do ZenRows
-      fetchUrl = `https://api.zenrows.com/v1/?apikey=${ZENROWS_API_KEY}&url=${encodeURIComponent(url)}&premium_proxy=true&antibot=true`;
+      if (url.includes('mobile.de')) {
+        // O Mobile.de requer bypass avançado do Datadome (pode demorar 30-40s e dar timeout no Cloudflare)
+        fetchUrl = `https://api.zenrows.com/v1/?apikey=${ZENROWS_API_KEY}&url=${encodeURIComponent(url)}&premium_proxy=true&antibot=true`;
+      } else {
+        // O Standvirtual não requer bypass avançado e é muito mais rápido, evitando o timeout de 10s do Cloudflare
+        fetchUrl = `https://api.zenrows.com/v1/?apikey=${ZENROWS_API_KEY}&url=${encodeURIComponent(url)}`;
+      }
+      
       fetchOptions = {}; // O serviço de proxy trata dos headers e fingerprinting
     }
 
