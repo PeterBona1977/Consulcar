@@ -55,6 +55,10 @@ export async function POST(request: Request) {
 
     const response = await fetch(fetchUrl, fetchOptions);
 
+    if (response.status === 404) {
+      return NextResponse.json({ error: 'O anúncio já não se encontra disponível (foi vendido ou removido).' }, { status: 404 });
+    }
+
     if (!response.ok) {
       throw new Error(`Erro HTTP: ${response.status} ao contactar ${fetchUrl}`);
     }
