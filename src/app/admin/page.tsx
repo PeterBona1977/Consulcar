@@ -173,6 +173,12 @@ export default function AdminPage() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#f5f5f5', color: '#333', padding: '50px 20px' }}>
+      <style>{`
+        input[type="text"], input[type="number"], input[type="url"], textarea, select {
+          color: #000 !important;
+          background-color: #fff !important;
+        }
+      `}</style>
       <div style={{ maxWidth: '1000px', margin: '0 auto', background: 'white', borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.1)', overflow: 'hidden' }}>
         
         <div style={{ display: 'flex', borderBottom: '1px solid #ddd', background: '#111' }}>
