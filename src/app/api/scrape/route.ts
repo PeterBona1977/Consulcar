@@ -11,10 +11,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'O URL é obrigatório' }, { status: 400 });
     }
 
-    // Integração com serviço de Proxy Anti-Bot para Produção (ex: ScraperAPI)
+    // Integração com serviço de Proxy Anti-Bot para Produção (ZenRows)
     // O Cloudflare Edge não suporta Puppeteer, portanto o scraping direto do Mobile.de é bloqueado.
     // É necessária uma chave API configurada nas variáveis de ambiente do Cloudflare.
-    const SCRAPER_API_KEY = process.env.SCRAPER_API_KEY;
+    const ZENROWS_API_KEY = process.env.ZENROWS_API_KEY;
     
     let fetchUrl = url;
     let fetchOptions: RequestInit = {
@@ -26,15 +26,15 @@ export async function POST(request: Request) {
     };
 
     if (url.includes('mobile.de') || url.includes('standvirtual.com')) {
-      if (!SCRAPER_API_KEY) {
+      if (!ZENROWS_API_KEY) {
         return NextResponse.json({ 
-          error: 'Para extrair dados do Mobile.de em produção no Cloudflare, configure a variável de ambiente SCRAPER_API_KEY com a sua chave do ScraperAPI.' 
+          error: 'Para extrair dados do Mobile.de em produção no Cloudflare, configure a variável de ambiente ZENROWS_API_KEY com a sua chave do ZenRows.' 
         }, { status: 403 });
       }
       
-      // Utiliza o ScraperAPI para contornar o Datadome/Cloudflare Anti-Bot
-      // É obrigatório usar premium=true para domínios altamente protegidos como o mobile.de
-      fetchUrl = `https://api.scraperapi.com/?api_key=${SCRAPER_API_KEY}&url=${encodeURIComponent(url)}&premium=true`;
+      // Utiliza o ZenRows para contornar o Datadome Anti-Bot
+      // Usamos premium_proxy=true e antibot=true que vêm incluídos no Trial do ZenRows
+      fetchUrl = `https://api.zenrows.com/v1/?apikey=${ZENROWS_API_KEY}&url=${encodeURIComponent(url)}&premium_proxy=true&antibot=true`;
       fetchOptions = {}; // O serviço de proxy trata dos headers e fingerprinting
     }
 
