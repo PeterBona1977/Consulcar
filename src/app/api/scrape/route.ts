@@ -33,7 +33,8 @@ export async function POST(request: Request) {
       }
       
       // Utiliza o ScraperAPI para contornar o Datadome/Cloudflare Anti-Bot
-      fetchUrl = `https://api.scraperapi.com/?api_key=${SCRAPER_API_KEY}&url=${encodeURIComponent(url)}&render=true`;
+      // Removemos o &render=true para ser muito mais rápido e evitar timeouts na Cloudflare Edge (que mata requests longos com 500 error)
+      fetchUrl = `https://api.scraperapi.com/?api_key=${SCRAPER_API_KEY}&url=${encodeURIComponent(url)}`;
       fetchOptions = {}; // O serviço de proxy trata dos headers e fingerprinting
     }
 
