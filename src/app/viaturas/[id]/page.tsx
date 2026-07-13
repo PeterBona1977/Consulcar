@@ -51,7 +51,7 @@ export default function ViaturaDetails() {
       } catch(e) {}
     } else {
       // String separada por vírgulas
-      imagesArray = car.images.split(',').map(s => s.trim()).filter(Boolean);
+      imagesArray = car.images.split(',').map((s: string) => s.trim()).filter(Boolean);
     }
   }
   
