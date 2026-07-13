@@ -97,6 +97,7 @@ ${cleanDesc.substring(0, 2500)}
 
 Regras ESTRITAS: 
 - NUNCA incluas nomes de pessoas, stands originais (alemães), contactos telefónicos, moradas, sites ou emails que venham na descrição original. Elimina qualquer rasto do vendedor original.
+- ESCREVE EXCLUSIVAMENTE EM PORTUGUÊS DE PORTUGAL (PT-PT), independentemente do idioma original!
 - O texto tem de ser curto, direto ao ponto e focado na emoção e na exclusividade desta máquina.
 - Usa alguns emojis elegantes, sem exagerar.
 - Não inventes extras que o carro não tenha.
@@ -115,9 +116,26 @@ Regras ESTRITAS:
         
         let translatedEquipment = car.features || [];
         if (translatedEquipment.length > 0) {
-          const joinedText = translatedEquipment.join(' || ');
-          const translatedJoined = await translateText(joinedText);
-          translatedEquipment = translatedJoined.split('||').map((e: string) => e.replace(/\|/g, '').trim()).filter((e: string) => e.length > 0);
+          // Traduzir em blocos menores para não exceder o limite de URL da API do Google (GET request)
+          const chunkSize = 10;
+          const newEquip = [];
+          for (let i = 0; i < translatedEquipment.length; i += chunkSize) {
+            const chunk = translatedEquipment.slice(i, i + chunkSize);
+            const joinedText = chunk.join(' ||| ');
+            const translatedJoined = await translateText(joinedText);
+            const splitTrans = translatedJoined.split('|||').map((e: string) => e.replace(/\|/g, '').trim()).filter((e: string) => e.length > 0);
+            newEquip.push(...splitTrans);
+          }
+          translatedEquipment = newEquip.length > 0 ? newEquip : translatedEquipment;
+        }
+
+        // Traduzir também os valores da ficha técnica (que costumam vir em alemão/inglês)
+        if (extractedSpecs.length > 0) {
+          for (let i = 0; i < extractedSpecs.length; i++) {
+             if (extractedSpecs[i].value && typeof extractedSpecs[i].value === 'string' && !extractedSpecs[i].value.match(/^[0-9]+$/)) {
+                extractedSpecs[i].value = await translateText(extractedSpecs[i].value);
+             }
+          }
         }
 
         return NextResponse.json({
