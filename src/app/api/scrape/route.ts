@@ -83,7 +83,7 @@ export async function POST(request: Request) {
         if (GEMINI_API_KEY && cleanDesc) {
           try {
             const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-            const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+            const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
             const prompt = `Atua como um vendedor de carros de luxo em Portugal. Escreve uma descrição CURTA (máximo 3 parágrafos), cativante e altamente persuasiva para o seguinte carro. O objetivo é vender!
             
 Detalhes técnicos conhecidos:
