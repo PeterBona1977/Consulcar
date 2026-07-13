@@ -72,7 +72,12 @@ export async function POST(request: Request) {
           }));
         }
 
-        const translatedDescription = await translateText(car.htmlDescription || '');
+        // Substituir <br> por \n para preservar os parágrafos na descrição final
+        let cleanDesc = (car.htmlDescription || '').replace(/<br\s*\/?>/gi, '\n');
+        cleanDesc = cleanDesc.replace(/(<([^>]+)>)/gi, ""); // remove as restantes tags HTML
+        
+        const translatedDescription = await translateText(cleanDesc);
+        
         let translatedEquipment = car.features || [];
         if (translatedEquipment.length > 0) {
           const joinedText = translatedEquipment.join(' || ');

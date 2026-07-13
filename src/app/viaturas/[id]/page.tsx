@@ -43,9 +43,20 @@ export default function ViaturaDetails() {
   if (Array.isArray(car.images)) {
     imagesArray = car.images;
   } else if (typeof car.images === 'string') {
-    try { imagesArray = JSON.parse(car.images); } catch(e) {}
+    if (car.images.startsWith('[') || car.images.startsWith('{')) {
+      try { 
+        // Lida com JSON array ou Postgres array (convertendo {url} para [url])
+        const parsed = JSON.parse(car.images.replace(/^\{/, '[').replace(/\}$/, ']')); 
+        if (Array.isArray(parsed)) imagesArray = parsed;
+      } catch(e) {}
+    } else {
+      // String separada por vírgulas
+      imagesArray = car.images.split(',').map(s => s.trim()).filter(Boolean);
+    }
   }
-  const images = imagesArray.length > 0 ? [car.image, ...imagesArray] : [car.image];
+  
+  // Se a array ficou vazia mas a car.image principal existe, usa só essa
+  const images = imagesArray.length > 0 ? Array.from(new Set([car.image, ...imagesArray])).filter(Boolean) : [car.image].filter(Boolean);
   const specs = car.specs || {};
 
   return (
