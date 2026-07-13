@@ -26,7 +26,69 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'O URL é obrigatório' }, { status: 400 });
     }
 
-    // Integração com serviço de Proxy (ScraperAPI)
+    // Integração com Apify para o mobile.de
+    if (url.includes('mobile.de')) {
+      const APIFY_API_TOKEN = process.env.APIFY_API_TOKEN;
+      if (!APIFY_API_TOKEN) {
+        return NextResponse.json({ error: 'Para extrair dados do Mobile.de, configure a variável de ambiente APIFY_API_TOKEN no Cloudflare.' }, { status: 403 });
+      }
+
+      const apifyUrl = `https://api.apify.com/v2/acts/memo23~mobile-de-scraper/run-sync-get-dataset-items?token=${APIFY_API_TOKEN}`;
+      const apifyRes = await fetch(apifyUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ startUrls: [{ url: url }] })
+      });
+
+      if (!apifyRes.ok) {
+        throw new Error(`Erro ao contactar Apify: ${apifyRes.status}`);
+      }
+
+      const apifyData = await apifyRes.json();
+      if (apifyData && apifyData.length > 0) {
+        const car = apifyData[0];
+        
+        let extractedImages: string[] = [];
+        if (car.images && Array.isArray(car.images)) {
+          extractedImages = car.images.map((img: any) => {
+            const uri = typeof img === 'string' ? img : (img.uri || '');
+            if (!uri) return '';
+            return uri.startsWith('http') ? uri : `https://${uri}`;
+          }).filter(Boolean);
+        }
+        
+        let extractedSpecs: {key: string, value: string}[] = [];
+        if (car.attributes && Array.isArray(car.attributes)) {
+          extractedSpecs = car.attributes.map((a: any) => ({
+            key: a.label || '',
+            value: Array.isArray(a.value) ? a.value.join(', ') : (a.value || '')
+          }));
+        }
+
+        const translatedDescription = await translateText(car.htmlDescription || '');
+        let translatedEquipment = car.features || [];
+        if (translatedEquipment.length > 0) {
+          const joinedText = translatedEquipment.join(' || ');
+          const translatedJoined = await translateText(joinedText);
+          translatedEquipment = translatedJoined.split('||').map((e: string) => e.replace(/\|/g, '').trim()).filter((e: string) => e.length > 0);
+        }
+
+        return NextResponse.json({
+          title: car.title || car.shortTitle || 'Viatura Desconhecida',
+          image: extractedImages.length > 0 ? extractedImages[0] : 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&q=80&w=1000',
+          images: extractedImages,
+          description: translatedDescription,
+          price: car.price && car.price.grs ? car.price.grs.localized : (car.price || 'Sob Consulta'),
+          equipment: translatedEquipment,
+          specs: extractedSpecs,
+          originalUrl: url
+        });
+      } else {
+        return NextResponse.json({ error: 'O anúncio já não se encontra disponível ou o Apify falhou a extração.' }, { status: 404 });
+      }
+    }
+
+    // Integração com serviço de Proxy (ScraperAPI) para outros sites como o Standvirtual
     const SCRAPER_API_KEY = process.env.SCRAPER_API_KEY || 'e5092038ee5044fc3ad892e9f180f52b';
     
     let fetchUrl = url;
@@ -38,21 +100,20 @@ export async function POST(request: Request) {
       }
     };
 
-    if (url.includes('mobile.de') || url.includes('standvirtual.com') || url.includes('autoscout24')) {
+    if (url.includes('standvirtual.com') || url.includes('autoscout24')) {
       if (!SCRAPER_API_KEY) {
         return NextResponse.json({ 
           error: 'A chave da API ScraperAPI não está configurada.' 
         }, { status: 403 });
       }
       
-      if (url.includes('mobile.de') || url.includes('autoscout24')) {
-        // Sites mais complexos podem precisar de javascript rendering e proxy premium
+      if (url.includes('autoscout24')) {
         fetchUrl = `http://api.scraperapi.com?api_key=${SCRAPER_API_KEY}&url=${encodeURIComponent(url)}&render=true&premium=true`;
       } else {
         fetchUrl = `http://api.scraperapi.com?api_key=${SCRAPER_API_KEY}&url=${encodeURIComponent(url)}`;
       }
       
-      fetchOptions = {}; // O serviço de proxy trata dos headers e fingerprinting
+      fetchOptions = {}; // O serviço de proxy trata dos headers
     }
 
     const response = await fetch(fetchUrl, fetchOptions);
