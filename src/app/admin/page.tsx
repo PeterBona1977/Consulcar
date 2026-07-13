@@ -395,6 +395,9 @@ export default function AdminPage() {
         .admin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; }
         .admin-flex-row { display: flex; gap: 10px; }
         
+        .admin-sections-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+        .admin-spec-row { display: flex; gap: 10px; margin-bottom: 10px; }
+        
         @media (max-width: 768px) {
           .admin-hamburger { display: flex; }
           .admin-nav { display: none; flex-direction: column; width: 100%; }
@@ -404,6 +407,8 @@ export default function AdminPage() {
           .admin-content-pad { padding: 20px 15px !important; }
           
           .admin-grid { grid-template-columns: 1fr; }
+          .admin-sections-grid { grid-template-columns: 1fr; gap: 20px; }
+          .admin-spec-row { flex-direction: column; }
           .admin-flex-row { flex-direction: column; }
           .admin-flex-row button { width: 100%; }
         }
@@ -480,12 +485,12 @@ export default function AdminPage() {
                 <textarea value={carDesc} onChange={e=>setCarDesc(e.target.value)} style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '6px', minHeight: '100px' }}></textarea>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px' }}>
+              <div className="admin-sections-grid">
                 {/* ESPECIFICAÇÕES */}
                 <div>
                   <h3 style={{ marginBottom: '15px' }}>Dados Técnicos</h3>
                   {specs.map((s, idx) => (
-                    <div key={idx} style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+                    <div key={idx} className="admin-spec-row">
                       <input value={s.key} onChange={e=>handleSpecChange(idx, 'key', e.target.value)} placeholder="Chave (Ex: mileage)" style={{ flex: 1, padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }} />
                       <input value={s.value} onChange={e=>handleSpecChange(idx, 'value', e.target.value)} placeholder="Valor (Ex: 32000 km)" style={{ flex: 1, padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }} />
                     </div>
@@ -498,7 +503,7 @@ export default function AdminPage() {
                   <h3 style={{ marginBottom: '15px' }}>Equipamentos (Alemão ou PT)</h3>
                   <p style={{ fontSize: '0.8rem', color: '#666', marginBottom: '10px' }}>Escreva o termo original. O sistema vai traduzir se souber!</p>
                   {equipment.map((eq, idx) => (
-                    <div key={idx} style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+                    <div key={idx} className="admin-spec-row">
                       <input value={eq} onChange={e=>handleEquipmentChange(idx, e.target.value)} placeholder="Ex: Sitzheizung" style={{ flex: 1, padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }} />
                       <span style={{ padding: '8px', background: '#f9f9f9', border: '1px solid #eee', borderRadius: '4px', fontSize: '0.9rem', color: '#888', minWidth: '150px' }}>
                         Tradução: {translateTerm(eq, 'equipment')}
