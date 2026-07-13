@@ -107,11 +107,11 @@ Regras ESTRITAS:
             const result = await model.generateContent(prompt);
             translatedDescription = result.response.text();
           } catch (e: any) {
-            console.error("Erro no Gemini, a usar tradutor normal:", e);
-            translatedDescription = `[ERRO NA INTELIGÊNCIA ARTIFICIAL: A sua chave da Google (GEMINI_API_KEY) parece ser inválida, expirou ou o serviço falhou. Mensagem: ${e.message}].\n\nA usar tradução de recurso:\n\n` + await translateText(cleanDesc);
+            console.error("Erro no Gemini:", e);
+            translatedDescription = `[ERRO NA INTELIGÊNCIA ARTIFICIAL: A sua chave da Google (GEMINI_API_KEY) falhou. Mensagem: ${e.message}].\n\nPor favor, verifique a sua chave.`;
           }
         } else {
-          translatedDescription = await translateText(cleanDesc);
+          translatedDescription = `[ERRO NA INTELIGÊNCIA ARTIFICIAL: Chave da Google (GEMINI_API_KEY) não configurada].\n\nPor favor, configure a chave no ficheiro .env para gerar descrições automaticamente.`;
         }
         
         let translatedEquipment = car.features || [];
