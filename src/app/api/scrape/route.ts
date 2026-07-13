@@ -129,10 +129,15 @@ Regras ESTRITAS:
           translatedEquipment = newEquip.length > 0 ? newEquip : translatedEquipment;
         }
 
-        // Traduzir também os valores da ficha técnica (que costumam vir em alemão/inglês)
+        // Traduzir também os valores e chaves da ficha técnica (que costumam vir em alemão/inglês)
         if (extractedSpecs.length > 0) {
           for (let i = 0; i < extractedSpecs.length; i++) {
-             if (extractedSpecs[i].value && typeof extractedSpecs[i].value === 'string' && !extractedSpecs[i].value.match(/^[0-9]+$/)) {
+             // Traduz a Chave (Ex: Getriebe -> Transmissão)
+             if (extractedSpecs[i].key && typeof extractedSpecs[i].key === 'string') {
+                extractedSpecs[i].key = await translateText(extractedSpecs[i].key);
+             }
+             // Traduz o Valor (Ex: Automatik -> Automático)
+             if (extractedSpecs[i].value && typeof extractedSpecs[i].value === 'string' && !extractedSpecs[i].value.match(/^[0-9.,]+$/)) {
                 extractedSpecs[i].value = await translateText(extractedSpecs[i].value);
              }
           }
