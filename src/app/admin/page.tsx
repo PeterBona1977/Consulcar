@@ -46,15 +46,19 @@ export default function AdminPage() {
     const margin = parseFloat(marginPercent);
     if (isNaN(margin) || !carPrice) return;
     
-    // Remove pontos de milhares (PT/DE) e símbolo €
-    let numericStr = carPrice.replace(/\./g, '').replace(/€/g, '').trim();
-    // Substitui vírgula decimal por ponto
-    numericStr = numericStr.replace(',', '.');
+    // Limpar tudo o que não seja número, ponto ou vírgula
+    let clean = carPrice.replace(/[^0-9.,]/g, '');
+    // Se terminar em cêntimos (ex: ,50 ou .00), removemos os cêntimos
+    if (clean.match(/[.,]\d{2}$/)) {
+        clean = clean.slice(0, -3);
+    }
+    // Agora removemos todos os pontos e vírgulas que restam (que são separadores de milhares)
+    clean = clean.replace(/[.,]/g, '');
     
-    const basePrice = parseFloat(numericStr);
+    const basePrice = parseInt(clean, 10);
     if (!isNaN(basePrice)) {
       const newPrice = Math.round(basePrice * (1 + margin / 100));
-      // Formata de volta para ficar estilo 24.900 €
+      // Formata de volta para ficar estilo 28.890 €
       setCarPrice(new Intl.NumberFormat('de-DE').format(newPrice) + ' €');
     }
   };
