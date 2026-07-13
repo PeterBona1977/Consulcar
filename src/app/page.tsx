@@ -133,18 +133,23 @@ export default function Home() {
     setFormSuccess(false);
     
     try {
-      const { error } = await supabase.from('leads').insert([{
-        entity_type: entityType,
-        company_name: companyName,
-        contact_name: contactName,
-        email: email,
-        phone: phone,
-        brand: brand,
-        model: model,
-        extras: extras
-      }]);
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          entity_type: entityType,
+          company_name: companyName,
+          contact_name: contactName,
+          email: email,
+          phone: phone,
+          brand: brand,
+          model: model,
+          extras: extras
+        })
+      });
 
-      if (error) throw error;
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Erro ao guardar lead');
       
       setFormSuccess(true);
       // Reset form
