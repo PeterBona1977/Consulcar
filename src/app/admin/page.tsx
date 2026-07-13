@@ -189,9 +189,14 @@ export default function AdminPage() {
   };
 
   const handleDeleteVehicle = async (id: string) => {
-    if (!confirm("Tem a certeza que deseja apagar esta viatura?")) return;
-    await supabase.from('vehicles').delete().eq('id', id);
-    fetchPublishedVehicles();
+    if (!session?.access_token || !confirm("Tem a certeza que deseja apagar esta viatura?")) return;
+    try {
+      await fetch(`/api/admin/vehicles?id=${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${session.access_token}` }
+      });
+      fetchPublishedVehicles();
+    } catch (e) { console.error(e) }
   };
 
   const handleEditVehicle = (v: any) => {
@@ -356,17 +361,28 @@ export default function AdminPage() {
       specs: specsObj
     };
 
-    let error;
-    if (editingId) {
-      const res = await supabase.from('vehicles').update(vehicleData).eq('id', editingId);
-      error = res.error;
-    } else {
-      const res = await supabase.from('vehicles').insert([vehicleData]);
-      error = res.error;
+    let errorMessage = null;
+    try {
+      const url = '/api/admin/vehicles';
+      const method = editingId ? 'PATCH' : 'POST';
+      const payload = editingId ? { id: editingId, ...vehicleData } : vehicleData;
+
+      const res = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token}`
+        },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (!res.ok) errorMessage = data.error;
+    } catch (e: any) {
+      errorMessage = e.message;
     }
 
-    if (error) {
-      setStatus(`Erro: ${error.message}`);
+    if (errorMessage) {
+      setStatus(`Erro: ${errorMessage}`);
     } else {
       setStatus(editingId ? "Viatura atualizada com sucesso!" : "Viatura publicada com sucesso! Os equipamentos conhecidos foram traduzidos automaticamente.");
       setTimeout(() => setStatus(""), 5000); // Remove a mensagem após 5 segundos
