@@ -478,9 +478,9 @@ export default function AdminPage() {
 
           {/* TAB GESTÃO DE VIATURAS */}
           {activeTab === 'gestao' && (
-            <div>
+            <div style={{ overflowX: 'auto' }}>
               <h2 style={{ marginBottom: '20px' }}>Viaturas Publicadas</h2>
-              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '800px' }}>
                 <thead>
                   <tr style={{ background: '#eee' }}>
                     <th style={{ padding: '12px' }}>Imagem</th>
@@ -499,8 +499,8 @@ export default function AdminPage() {
                           <div style={{ width: '80px', height: '60px', background: '#ccc', borderRadius: '4px' }}></div>
                         )}
                       </td>
-                      <td style={{ padding: '12px', fontWeight: 'bold' }}>{v.title}</td>
-                      <td style={{ padding: '12px' }}>{v.price}</td>
+                      <td style={{ padding: '12px', fontWeight: 'bold', wordBreak: 'break-word', maxWidth: '300px' }}>{v.title}</td>
+                      <td style={{ padding: '12px', wordBreak: 'break-word', maxWidth: '200px' }}>{v.price}</td>
                       <td style={{ padding: '12px' }}>
                         <Link href={`/viaturas/${v.id}`} target="_blank" style={{ display: 'inline-block', padding: '6px 12px', background: '#e3f2fd', color: '#1565c0', textDecoration: 'none', borderRadius: '4px', marginRight: '10px' }}>Ver</Link>
                         <button onClick={() => handleEditVehicle(v)} style={{ padding: '6px 12px', background: '#fff3e0', color: '#ef6c00', border: 'none', borderRadius: '4px', cursor: 'pointer', marginRight: '10px' }}>Editar</button>
