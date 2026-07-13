@@ -89,7 +89,7 @@ export default function ViaturaDetails() {
             <p style={{ color: 'var(--accent-primary)', fontSize: '2.5rem', fontWeight: 'bold' }}>{car.price}</p>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '50px', alignItems: 'start' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '80px', alignItems: 'start' }}>
             
             {/* Coluna Esquerda: Galeria e Descrição */}
             <div>
@@ -105,9 +105,9 @@ export default function ViaturaDetails() {
               </div>
 
               {/* Descrição Longa */}
-              <div style={{ marginTop: '50px', background: 'var(--surface-light, rgba(20,20,20,0.3))', padding: '30px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                <h3 style={{ marginBottom: '20px', color: 'rgba(255,255,255,0.9)', fontSize: '1.4rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '10px' }}>Descrição da Viatura</h3>
-                <p style={{ lineHeight: 1.8, color: 'rgba(255,255,255,0.7)', whiteSpace: 'pre-wrap' }}>{car.description}</p>
+              <div style={{ marginTop: '60px' }}>
+                <h3 style={{ marginBottom: '25px', color: 'rgba(255,255,255,1)', fontSize: '1.6rem', fontWeight: 'bold' }}>Sobre esta Viatura</h3>
+                <div style={{ lineHeight: 1.9, color: 'rgba(255,255,255,0.75)', fontSize: '1.1rem', whiteSpace: 'pre-wrap' }}>{car.description}</div>
               </div>
             </div>
 
@@ -128,9 +128,9 @@ export default function ViaturaDetails() {
               </div>
 
               {/* Dados Técnicos Detalhados */}
-              <div style={{ marginBottom: '40px' }}>
-                <h3 style={{ marginBottom: '20px', color: 'rgba(255,255,255,0.9)', fontSize: '1.4rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '10px' }}>Detalhes Técnicos</h3>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '15px' }}>
+              <div style={{ marginBottom: '50px' }}>
+                <h3 style={{ marginBottom: '25px', color: 'rgba(255,255,255,1)', fontSize: '1.3rem', fontWeight: 'bold' }}>Ficha Técnica</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   {Object.entries(specs).map(([key, value]) => {
                     // Ignorar o array de equipamentos para mostrar noutra secção
                     if (key === 'equipment' || !value) return null;
@@ -147,9 +147,9 @@ export default function ViaturaDetails() {
                     const label = labels[key] || key;
                     
                     return (
-                      <div key={key} style={{ background: 'rgba(0,0,0,0.3)', padding: '15px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                        <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '5px' }}>{label}</div>
-                        <div style={{ fontWeight: '600', fontSize: '1.05rem', color: 'rgba(255,255,255,0.95)' }}>{String(value)}</div>
+                      <div key={key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '12px' }}>
+                        <span style={{ fontSize: '0.95rem', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{label}</span>
+                        <span style={{ fontWeight: '600', fontSize: '1.05rem', color: 'rgba(255,255,255,0.95)', textAlign: 'right', maxWidth: '60%' }}>{String(value)}</span>
                       </div>
                     );
                   })}
@@ -159,12 +159,12 @@ export default function ViaturaDetails() {
               {/* Equipamento de Destaque */}
               {specs.equipment && Array.isArray(specs.equipment) && specs.equipment.length > 0 && (
                 <div>
-                  <h3 style={{ marginBottom: '20px', color: 'rgba(255,255,255,0.9)', fontSize: '1.4rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '10px' }}>Equipamento de Destaque</h3>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <h3 style={{ marginBottom: '25px', color: 'rgba(255,255,255,1)', fontSize: '1.3rem', fontWeight: 'bold' }}>Equipamento de Destaque</h3>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '16px' }}>
                     {specs.equipment.map((item: string, idx: number) => (
-                      <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'rgba(255,255,255,0.7)', fontSize: '0.95rem' }}>
-                        <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent-primary)' }}></div>
-                        {item}
+                      <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', color: 'rgba(255,255,255,0.75)', fontSize: '1rem', lineHeight: '1.4' }}>
+                        <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent-primary)', marginTop: '8px', flexShrink: 0 }}></div>
+                        <span>{item}</span>
                       </div>
                     ))}
                   </div>
