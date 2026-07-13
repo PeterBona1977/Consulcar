@@ -84,7 +84,7 @@ export async function POST(request: Request) {
           try {
             const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
             const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-            const prompt = `Atua como um vendedor de carros de luxo em Portugal. Escreve uma descrição apaixonante, única e altamente persuasiva para o seguinte carro, otimizada para web (com parágrafos curtos e alguns emojis elegantes).
+            const prompt = `Atua como um vendedor de carros de luxo em Portugal. Escreve uma descrição CURTA (máximo 3 parágrafos), cativante e altamente persuasiva para o seguinte carro. O objetivo é vender!
             
 Detalhes técnicos conhecidos:
 - Título: ${car.title || car.shortTitle}
@@ -92,14 +92,16 @@ Detalhes técnicos conhecidos:
 - Combustível: ${car.fuel || 'Desconhecido'}
 - Quilometragem: ${car.mileage || 'Desconhecida'}
 
-Descrição original do anúncio (traduz/adapta isto mas foca-te em vender o carro de forma premium em Portugal):
+Descrição original do anúncio (inspira-te nisto para destacar os pontos fortes):
 ${cleanDesc.substring(0, 2500)}
 
-Regras: 
-- Apenas escreve a descrição final pronta a publicar (não respondas 'Aqui está a descrição').
-- Não inventes dados técnicos que não constem na lista ou na descrição original.
-- O teu tom deve inspirar confiança e luxo.
-- Adiciona uma chamada à ação (CTA) no final a dizer que tratamos de toda a importação, legalização e entrega chave-na-mão na Consulcar.`;
+Regras ESTRITAS: 
+- NUNCA incluas nomes de pessoas, stands originais (alemães), contactos telefónicos, moradas, sites ou emails que venham na descrição original. Elimina qualquer rasto do vendedor original.
+- O texto tem de ser curto, direto ao ponto e focado na emoção e na exclusividade desta máquina.
+- Usa alguns emojis elegantes, sem exagerar.
+- Não inventes extras que o carro não tenha.
+- Termina sempre com uma CTA curta: "A Consulcar trata de toda a importação, legalização e entrega chave-na-mão. Peça já a sua proposta!"
+- Devolve APENAS a descrição pronta a publicar (sem introduções tuas).`;
 
             const result = await model.generateContent(prompt);
             translatedDescription = result.response.text();
