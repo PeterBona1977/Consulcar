@@ -51,9 +51,16 @@ export async function POST(request: Request) {
         let extractedImages: string[] = [];
         if (car.images && Array.isArray(car.images)) {
           extractedImages = car.images.map((img: any) => {
-            const uri = typeof img === 'string' ? img : (img.uri || '');
+            let uri = typeof img === 'string' ? img : (img.uri || '');
             if (!uri) return '';
-            return uri.startsWith('http') ? uri : `https://${uri}`;
+            uri = uri.startsWith('http') ? uri : `https://${uri}`;
+            
+            // O mobile.de usa o classistatic que exige o parâmetro rule para as imagens não darem Erro 400
+            if (uri.includes('classistatic.de') && !uri.includes('rule=')) {
+              uri = `${uri}?rule=mo-1600.jpg`; // Usa resolução alta
+            }
+            
+            return uri;
           }).filter(Boolean);
         }
         
