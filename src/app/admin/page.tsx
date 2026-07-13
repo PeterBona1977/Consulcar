@@ -18,10 +18,12 @@ export default function AdminPage() {
   const [dictionary, setDictionary] = useState<DictionaryEntry[]>([]);
   const [newDict, setNewDict] = useState({ category: 'equipment', foreign_term: '', pt_term: '' });
   
-  // Viaturas (Nova)
+  // Viaturas (Nova / Edição)
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [carTitle, setCarTitle] = useState("");
   const [carPrice, setCarPrice] = useState("");
   const [carImage, setCarImage] = useState("");
+  const [carImages, setCarImages] = useState<string[]>([]);
   const [carDesc, setCarDesc] = useState("");
   const [carOriginalUrl, setCarOriginalUrl] = useState("");
   
@@ -54,6 +56,51 @@ export default function AdminPage() {
     if (!confirm("Tem a certeza que deseja apagar esta viatura?")) return;
     await supabase.from('vehicles').delete().eq('id', id);
     fetchPublishedVehicles();
+  };
+
+  const handleEditVehicle = (v: any) => {
+    setEditingId(v.id);
+    setCarTitle(v.title || "");
+    setCarPrice(v.price || "");
+    setCarImage(v.image || "");
+    setCarDesc(v.description || "");
+    setCarOriginalUrl(v.original_url || "");
+    
+    // Parse specs
+    const s = v.specs || {};
+    const loadedSpecs = Object.keys(s)
+      .filter(k => k !== 'equipment')
+      .map(k => ({ key: k, value: s[k] }));
+    setSpecs(loadedSpecs.length > 0 ? loadedSpecs : [{key: '', value: ''}]);
+    
+    // Parse equipment
+    const eq = s.equipment || [];
+    setEquipment(eq.length > 0 ? eq : ['']);
+    
+    // Images
+    let imgs: string[] = [];
+    if (Array.isArray(v.images)) imgs = v.images;
+    else if (typeof v.images === 'string') {
+       if (v.images.startsWith('[') || v.images.startsWith('{')) {
+         try {
+           const parsed = JSON.parse(v.images.replace(/^\{/, '[').replace(/\}$/, ']'));
+           if (Array.isArray(parsed)) imgs = parsed;
+         } catch(e) {}
+       } else {
+         imgs = v.images.split(',').map((s: string) => s.trim()).filter(Boolean);
+       }
+    }
+    setCarImages(imgs);
+    
+    setActiveTab('viaturas');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setCarTitle(""); setCarPrice(""); setCarImage(""); setCarImages([]); setCarDesc(""); setCarOriginalUrl("");
+    setSpecs([{key: '', value: ''}]); setEquipment(['']);
+    setStatus("");
   };
 
   const handleAddDict = async (e: React.FormEvent) => {
@@ -130,6 +177,14 @@ export default function AdminPage() {
         setEquipment(data.equipment);
       }
       
+      if (data.specs && Array.isArray(data.specs) && data.specs.length > 0) {
+        setSpecs(data.specs);
+      }
+      
+      if (data.images && Array.isArray(data.images)) {
+        setCarImages(data.images);
+      }
+      
       setStatus("Dados importados e traduzidos com sucesso! Verifique e ajuste os campos antes de guardar.");
     } catch (error: any) {
       setStatus(`Erro: ${error.message}`);
@@ -155,22 +210,31 @@ export default function AdminPage() {
       
     specsObj.equipment = translatedEq;
 
-    const { error } = await supabase.from('vehicles').insert([{
+    const vehicleData = {
       title: carTitle,
       price: carPrice,
       image: carImage,
       description: carDesc,
       original_url: carOriginalUrl,
-      images: [], // O utilizador depois pode editar
+      images: carImages,
       specs: specsObj
-    }]);
+    };
+
+    let error;
+    if (editingId) {
+      const res = await supabase.from('vehicles').update(vehicleData).eq('id', editingId);
+      error = res.error;
+    } else {
+      const res = await supabase.from('vehicles').insert([vehicleData]);
+      error = res.error;
+    }
 
     if (error) {
       setStatus(`Erro: ${error.message}`);
     } else {
-      setStatus("Viatura publicada com sucesso! Os equipamentos conhecidos foram traduzidos automaticamente.");
-      setCarTitle(""); setCarPrice(""); setCarImage(""); setCarDesc(""); setCarOriginalUrl("");
-      setSpecs([{key: '', value: ''}]); setEquipment(['']);
+      setStatus(editingId ? "Viatura atualizada com sucesso!" : "Viatura publicada com sucesso! Os equipamentos conhecidos foram traduzidos automaticamente.");
+      setTimeout(() => setStatus(""), 5000); // Remove a mensagem após 5 segundos
+      cancelEdit();
       fetchPublishedVehicles();
     }
   };
@@ -203,7 +267,7 @@ export default function AdminPage() {
           {/* TAB VIATURAS */}
           {activeTab === 'viaturas' && (
             <form onSubmit={handleSaveVehicle}>
-              <h2 style={{ marginBottom: '20px' }}>Publicar Nova Viatura</h2>
+              <h2 style={{ marginBottom: '20px' }}>{editingId ? 'Editar Viatura' : 'Publicar Nova Viatura'}</h2>
               {status && <div style={{ padding: '15px', background: '#e0f7fa', color: '#006064', marginBottom: '20px', borderRadius: '8px' }}>{status}</div>}
               
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '30px' }}>
@@ -216,7 +280,7 @@ export default function AdminPage() {
                   <input required value={carPrice} onChange={e=>setCarPrice(e.target.value)} type="text" style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '6px' }} placeholder="Ex: 24.900 €" />
                 </div>
                 <div>
-                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>URL Imagem Principal</label>
+                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Imagem URL: {carImages.length > 0 && <span style={{color:'green', fontSize:'0.8em'}}>({carImages.length} fotos extraídas da galeria)</span>}</label>
                   <input value={carImage} onChange={e=>setCarImage(e.target.value)} type="text" style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '6px' }} placeholder="https://..." />
                 </div>
                 <div>
@@ -264,8 +328,15 @@ export default function AdminPage() {
                 </div>
               </div>
 
-              <div style={{ marginTop: '40px', borderTop: '1px solid #ddd', paddingTop: '20px' }}>
-                <button type="submit" style={{ padding: '15px 30px', background: '#000', color: 'white', border: 'none', borderRadius: '8px', fontSize: '1.1rem', cursor: 'pointer' }}>Gravar Viatura e Traduzir</button>
+              <div style={{ marginTop: '40px', borderTop: '1px solid #ddd', paddingTop: '20px', display: 'flex', gap: '15px' }}>
+                <button type="submit" style={{ padding: '15px 30px', background: '#000', color: 'white', border: 'none', borderRadius: '8px', fontSize: '1.1rem', cursor: 'pointer' }}>
+                  {editingId ? 'Atualizar Viatura' : 'Gravar Viatura e Traduzir'}
+                </button>
+                {editingId && (
+                  <button type="button" onClick={cancelEdit} style={{ padding: '15px 30px', background: '#fff', color: '#333', border: '1px solid #ccc', borderRadius: '8px', fontSize: '1.1rem', cursor: 'pointer' }}>
+                    Cancelar Edição
+                  </button>
+                )}
               </div>
             </form>
           )}
@@ -297,6 +368,7 @@ export default function AdminPage() {
                       <td style={{ padding: '12px' }}>{v.price}</td>
                       <td style={{ padding: '12px' }}>
                         <Link href={`/viaturas/${v.id}`} target="_blank" style={{ display: 'inline-block', padding: '6px 12px', background: '#e3f2fd', color: '#1565c0', textDecoration: 'none', borderRadius: '4px', marginRight: '10px' }}>Ver</Link>
+                        <button onClick={() => handleEditVehicle(v)} style={{ padding: '6px 12px', background: '#fff3e0', color: '#ef6c00', border: 'none', borderRadius: '4px', cursor: 'pointer', marginRight: '10px' }}>Editar</button>
                         <button onClick={() => handleDeleteVehicle(v.id)} style={{ padding: '6px 12px', background: '#ffebee', color: '#c62828', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Apagar</button>
                       </td>
                     </tr>
