@@ -14,6 +14,7 @@ interface DictionaryEntry {
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState("viaturas");
+  const [isAdminMenuOpen, setIsAdminMenuOpen] = useState(false);
   
   // Auth
   const [session, setSession] = useState<any>(null);
@@ -385,32 +386,59 @@ export default function AdminPage() {
           color: #000 !important;
           background-color: #fff !important;
         }
+        
+        .admin-nav-container { border-bottom: 1px solid #ddd; background: #111; }
+        .admin-hamburger { display: none; padding: 15px 20px; background: #111; color: white; cursor: pointer; font-weight: bold; justify-content: space-between; align-items: center; }
+        .admin-nav { display: flex; flex-wrap: wrap; }
+        .admin-nav button { flex: 1; padding: 15px; color: white; border: none; cursor: pointer; font-size: 1rem; font-weight: bold; }
+        
+        .admin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; }
+        .admin-flex-row { display: flex; gap: 10px; }
+        
+        @media (max-width: 768px) {
+          .admin-hamburger { display: flex; }
+          .admin-nav { display: none; flex-direction: column; width: 100%; }
+          .admin-nav.open { display: flex; }
+          .admin-nav button { text-align: left; padding: 15px 20px; border-bottom: 1px solid #222; }
+          .admin-nav .admin-nav-actions { width: 100%; justify-content: space-between; padding: 15px 20px; }
+          .admin-content-pad { padding: 20px 15px !important; }
+          
+          .admin-grid { grid-template-columns: 1fr; }
+          .admin-flex-row { flex-direction: column; }
+          .admin-flex-row button { width: 100%; }
+        }
       `}</style>
       <div style={{ maxWidth: '1000px', margin: '0 auto', background: 'white', borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.1)', overflow: 'hidden' }}>
         
-        <div style={{ display: 'flex', borderBottom: '1px solid #ddd', background: '#111', flexWrap: 'wrap' }}>
-          <button onClick={() => setActiveTab('viaturas')} style={{ flex: 1, padding: '15px', background: activeTab === 'viaturas' ? '#222' : '#111', color: 'white', border: 'none', cursor: 'pointer', fontSize: '1rem', fontWeight: 'bold' }}>
-            🚘 Nova Viatura
-          </button>
-          <button onClick={() => setActiveTab('gestao')} style={{ flex: 1, padding: '15px', background: activeTab === 'gestao' ? '#222' : '#111', color: 'white', border: 'none', cursor: 'pointer', fontSize: '1rem', fontWeight: 'bold' }}>
-            📋 Viaturas
-          </button>
-          <button onClick={() => setActiveTab('dicionario')} style={{ flex: 1, padding: '15px', background: activeTab === 'dicionario' ? '#222' : '#111', color: 'white', border: 'none', cursor: 'pointer', fontSize: '1rem', fontWeight: 'bold' }}>
-            🧠 Dicionário
-          </button>
-          <button onClick={() => setActiveTab('leads')} style={{ flex: 1, padding: '15px', background: activeTab === 'leads' ? '#222' : '#111', color: 'white', border: 'none', cursor: 'pointer', fontSize: '1rem', fontWeight: 'bold' }}>
-            📩 Mensagens
-          </button>
-          <button onClick={() => setActiveTab('admins')} style={{ flex: 1, padding: '15px', background: activeTab === 'admins' ? '#222' : '#111', color: 'white', border: 'none', cursor: 'pointer', fontSize: '1rem', fontWeight: 'bold' }}>
-            👥 Admins
-          </button>
-          <div style={{ padding: '15px', display: 'flex', gap: '15px', alignItems: 'center' }}>
-            <Link href="/" style={{ color: '#00d2ff', textDecoration: 'none', fontSize: '0.9rem' }}>Site Principal</Link>
-            <button onClick={handleLogout} style={{ background: 'transparent', color: '#ef5350', border: '1px solid #ef5350', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.9rem' }}>Sair</button>
+        <div className="admin-nav-container">
+          <div className="admin-hamburger" onClick={() => setIsAdminMenuOpen(!isAdminMenuOpen)}>
+            <span>Menu de Administração ({activeTab.charAt(0).toUpperCase() + activeTab.slice(1)})</span>
+            <span>☰</span>
+          </div>
+          <div className={`admin-nav ${isAdminMenuOpen ? 'open' : ''}`}>
+            <button onClick={() => { setActiveTab('viaturas'); setIsAdminMenuOpen(false); }} style={{ background: activeTab === 'viaturas' ? '#222' : '#111' }}>
+              🚘 Nova Viatura
+            </button>
+            <button onClick={() => { setActiveTab('gestao'); setIsAdminMenuOpen(false); }} style={{ background: activeTab === 'gestao' ? '#222' : '#111' }}>
+              📋 Viaturas
+            </button>
+            <button onClick={() => { setActiveTab('dicionario'); setIsAdminMenuOpen(false); }} style={{ background: activeTab === 'dicionario' ? '#222' : '#111' }}>
+              🧠 Dicionário
+            </button>
+            <button onClick={() => { setActiveTab('leads'); setIsAdminMenuOpen(false); }} style={{ background: activeTab === 'leads' ? '#222' : '#111' }}>
+              📩 Mensagens
+            </button>
+            <button onClick={() => { setActiveTab('admins'); setIsAdminMenuOpen(false); }} style={{ background: activeTab === 'admins' ? '#222' : '#111' }}>
+              👥 Admins
+            </button>
+            <div className="admin-nav-actions" style={{ padding: '15px', display: 'flex', gap: '15px', alignItems: 'center' }}>
+              <Link href="/" style={{ color: '#00d2ff', textDecoration: 'none', fontSize: '0.9rem' }}>Site Principal</Link>
+              <button onClick={handleLogout} style={{ background: 'transparent', color: '#ef5350', border: '1px solid #ef5350', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.9rem', flex: 'none' }}>Sair</button>
+            </div>
           </div>
         </div>
 
-        <div style={{ padding: '40px' }}>
+        <div style={{ padding: '40px' }} className="admin-content-pad">
           
           {/* TAB VIATURAS */}
           {activeTab === 'viaturas' && (
@@ -418,16 +446,16 @@ export default function AdminPage() {
               <h2 style={{ marginBottom: '20px' }}>{editingId ? 'Editar Viatura' : 'Publicar Nova Viatura'}</h2>
               {status && <div style={{ padding: '15px', background: '#e0f7fa', color: '#006064', marginBottom: '20px', borderRadius: '8px' }}>{status}</div>}
               
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '30px' }}>
+              <div className="admin-grid">
                 <div>
                   <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Título do Anúncio</label>
                   <input required value={carTitle} onChange={e=>setCarTitle(e.target.value)} type="text" style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '6px' }} placeholder="Ex: Suzuki Vitara 1.4" />
                 </div>
                 <div>
                   <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Preço de Venda</label>
-                  <div style={{ display: 'flex', gap: '10px' }}>
+                  <div className="admin-flex-row">
                     <input required value={carPrice} onChange={e=>setCarPrice(e.target.value)} type="text" style={{ flex: 1, padding: '10px', border: '1px solid #ccc', borderRadius: '6px' }} placeholder="Ex: 24.900 €" />
-                    <input type="number" value={marginPercent} onChange={e=>setMarginPercent(e.target.value)} placeholder="% Margem" style={{ width: '110px', padding: '10px', border: '1px solid #ccc', borderRadius: '6px' }} />
+                    <input type="number" value={marginPercent} onChange={e=>setMarginPercent(e.target.value)} placeholder="% Margem" style={{ width: '110px', padding: '10px', border: '1px solid #ccc', borderRadius: '6px', flex: 'none' }} />
                     <button type="button" onClick={applyMargin} style={{ padding: '10px 15px', background: '#00d2ff', color: 'black', fontWeight: 'bold', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Aplicar</button>
                   </div>
                 </div>
@@ -437,7 +465,7 @@ export default function AdminPage() {
                 </div>
                 <div>
                   <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>URL do Anúncio Original</label>
-                  <div style={{ display: 'flex', gap: '10px' }}>
+                  <div className="admin-flex-row">
                     <input value={carOriginalUrl} onChange={e=>setCarOriginalUrl(e.target.value)} type="text" style={{ flex: 1, padding: '10px', border: '1px solid #ccc', borderRadius: '6px' }} placeholder="https://mobile.de/..." />
                     <button type="button" onClick={handleFetchDataFromUrl} disabled={isScraping} style={{ padding: '10px 15px', background: '#00d2ff', color: 'black', fontWeight: 'bold', border: 'none', borderRadius: '6px', cursor: isScraping ? 'not-allowed' : 'pointer' }}>
                       {isScraping ? 'A extrair...' : 'Extrair Dados'}
