@@ -158,11 +158,6 @@ export default function ViaturaDetails() {
                 <button onClick={() => setIsModalOpen(true)} className="btn btn-primary" style={{ display: 'block', fontSize: '1.2rem', padding: '16px', textAlign: 'center', borderRadius: '8px', width: '100%', fontWeight: 'bold', border: 'none', cursor: 'pointer' }}>
                   Pedir Proposta Chave-na-Mão
                 </button>
-                {car.original_url && (
-                  <a href={car.original_url} target="_blank" rel="noopener noreferrer" style={{ display: 'block', textAlign: 'center', marginTop: '20px', color: 'rgba(255,255,255,0.4)', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.color = 'var(--accent-primary)'} onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.4)'}>
-                    Ver anúncio original no estrangeiro ↗
-                  </a>
-                )}
               </div>
             </div>
           </div>
