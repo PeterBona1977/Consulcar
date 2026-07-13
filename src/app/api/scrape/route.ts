@@ -105,11 +105,11 @@ Regras ESTRITAS:
 
             let result;
             try {
-              const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-lite" });
+              const model = genAI.getGenerativeModel({ model: "gemini-3.1-flash-lite" });
               result = await model.generateContent(prompt);
             } catch (err1: any) {
-              console.log("O servidor Lite falhou. A tentar o modelo de reserva...", err1.message);
-              const fallbackModel = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+              console.log("O servidor falhou. A tentar o modelo de reserva...", err1.message);
+              const fallbackModel = genAI.getGenerativeModel({ model: "gemini-3.1-flash-lite-preview" });
               result = await fallbackModel.generateContent(prompt);
             }
             
