@@ -83,7 +83,6 @@ export async function POST(request: Request) {
         if (GEMINI_API_KEY && cleanDesc) {
           try {
             const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-            const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
             const prompt = `Atua como um vendedor de carros de luxo em Portugal. Escreve uma descrição CURTA (máximo 3 parágrafos), cativante e altamente persuasiva para o seguinte carro. O objetivo é vender!
             
 Detalhes técnicos conhecidos:
@@ -104,7 +103,16 @@ Regras ESTRITAS:
 - Termina sempre com uma CTA curta: "A Consulcar trata de toda a importação, legalização e entrega chave-na-mão. Peça já a sua proposta!"
 - Devolve APENAS a descrição pronta a publicar (sem introduções tuas).`;
 
-            const result = await model.generateContent(prompt);
+            let result;
+            try {
+              const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
+              result = await model.generateContent(prompt);
+            } catch (err1: any) {
+              console.log("O servidor Gemini principal está sobrecarregado. A tentar o modelo de reserva (Lite)...", err1.message);
+              const fallbackModel = genAI.getGenerativeModel({ model: "gemini-flash-lite-latest" });
+              result = await fallbackModel.generateContent(prompt);
+            }
+            
             translatedDescription = result.response.text();
           } catch (e: any) {
             console.error("Erro no Gemini:", e);
