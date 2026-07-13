@@ -89,9 +89,9 @@ export default function ViaturaDetails() {
             <p style={{ color: 'var(--accent-primary)', fontSize: '2.5rem', fontWeight: 'bold' }}>{car.price}</p>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '80px', alignItems: 'start' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '80px', alignItems: 'start', marginBottom: '60px' }}>
             
-            {/* Coluna Esquerda: Galeria e Descrição */}
+            {/* Coluna Esquerda: Galeria */}
             <div>
               <div style={{ width: '100%', height: '450px', borderRadius: '16px', overflow: 'hidden', marginBottom: '15px', border: '1px solid rgba(255,255,255,0.1)', background: '#000' }}>
                 <img src={activeImage} alt={car.title} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
@@ -103,18 +103,12 @@ export default function ViaturaDetails() {
                   </div>
                 ))}
               </div>
-
-              {/* Descrição Longa */}
-              <div style={{ marginTop: '60px' }}>
-                <h3 style={{ marginBottom: '25px', color: 'rgba(255,255,255,1)', fontSize: '1.6rem', fontWeight: 'bold' }}>Sobre esta Viatura</h3>
-                <div style={{ lineHeight: 1.9, color: 'rgba(255,255,255,0.75)', fontSize: '1.1rem', whiteSpace: 'pre-wrap' }}>{car.description}</div>
-              </div>
             </div>
 
-            {/* Coluna Direita: Dados Técnicos, Equipamento e CTA */}
+            {/* Coluna Direita: CTA Only */}
             <div className="car-details-sidebar" style={{ position: 'sticky', top: '100px' }}>
               {/* CTA Flutuante / Fixo na Coluna */}
-              <div className="mobile-fixed-cta" style={{ background: 'var(--surface-light, rgba(20,20,20,0.5))', padding: '30px', borderRadius: '16px', border: '1px solid var(--accent-primary)', backdropFilter: 'blur(10px)', marginBottom: '40px', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
+              <div className="mobile-fixed-cta" style={{ background: 'var(--surface-light, rgba(20,20,20,0.5))', padding: '30px', borderRadius: '16px', border: '1px solid var(--accent-primary)', backdropFilter: 'blur(10px)', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
                 <h3 style={{ fontSize: '1.3rem', marginBottom: '15px' }}>Quer importar esta viatura?</h3>
                 <p style={{ color: 'rgba(255,255,255,0.6)', marginBottom: '25px', lineHeight: 1.5 }}>Tratamos de todo o processo de negociação, transporte, legalização e entrega chave-na-mão.</p>
                 <Link href={`/?car=${car.id}#pedido`} className="btn btn-primary" style={{ display: 'block', fontSize: '1.2rem', padding: '16px', textAlign: 'center', borderRadius: '8px', width: '100%', fontWeight: 'bold' }}>
@@ -126,52 +120,60 @@ export default function ViaturaDetails() {
                   </a>
                 )}
               </div>
+            </div>
+          </div>
 
-              {/* Dados Técnicos Detalhados */}
-              <div style={{ marginBottom: '50px' }}>
-                <h3 style={{ marginBottom: '25px', color: 'rgba(255,255,255,1)', fontSize: '1.3rem', fontWeight: 'bold' }}>Ficha Técnica</h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  {Object.entries(specs).map(([key, value]) => {
-                    // Ignorar o array de equipamentos para mostrar noutra secção
-                    if (key === 'equipment' || !value) return null;
-                    
-                    // Tradução básica de chaves conhecidas
-                    const labels: Record<string, string> = {
-                      mileage: 'Quilometragem', year: 'Ano / Registo', fuel: 'Combustível', 
-                      transmission: 'Caixa', power: 'Potência', condition: 'Estado',
-                      color: 'Cor Exterior', interior: 'Interior', body: 'Carroçaria',
-                      doors: 'Portas', seats: 'Lugares', origin: 'Origem',
-                      consumption: 'Consumo', emissions: 'Emissões CO2'
-                    };
-                    
-                    const label = labels[key] || key;
-                    
-                    return (
-                      <div key={key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '12px' }}>
-                        <span style={{ fontSize: '0.95rem', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{label}</span>
-                        <span style={{ fontWeight: '600', fontSize: '1.05rem', color: 'rgba(255,255,255,0.95)', textAlign: 'right', maxWidth: '60%' }}>{String(value)}</span>
-                      </div>
-                    );
-                  })}
+          {/* Secção a 100% da largura (Abaixo da grelha de Galeria / CTA) */}
+          <div style={{ maxWidth: '100%', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '60px' }}>
+            
+            {/* Descrição Longa */}
+            <div style={{ marginBottom: '60px' }}>
+              <h3 style={{ marginBottom: '25px', color: 'rgba(255,255,255,1)', fontSize: '1.6rem', fontWeight: 'bold' }}>Sobre esta Viatura</h3>
+              <div style={{ lineHeight: 1.9, color: 'rgba(255,255,255,0.75)', fontSize: '1.1rem', whiteSpace: 'pre-wrap', maxWidth: '1000px' }}>{car.description}</div>
+            </div>
+
+            {/* Dados Técnicos Detalhados */}
+            <div style={{ marginBottom: '60px' }}>
+              <h3 style={{ marginBottom: '25px', color: 'rgba(255,255,255,1)', fontSize: '1.3rem', fontWeight: 'bold' }}>Ficha Técnica</h3>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 'x 40px', columnGap: '60px', rowGap: '16px' }}>
+                {Object.entries(specs).map(([key, value]) => {
+                  if (key === 'equipment' || !value) return null;
+                  
+                  const labels: Record<string, string> = {
+                    mileage: 'Quilometragem', year: 'Ano / Registo', fuel: 'Combustível', 
+                    transmission: 'Caixa', power: 'Potência', condition: 'Estado',
+                    color: 'Cor Exterior', interior: 'Interior', body: 'Carroçaria',
+                    doors: 'Portas', seats: 'Lugares', origin: 'Origem',
+                    consumption: 'Consumo', emissions: 'Emissões CO2'
+                  };
+                  
+                  const label = labels[key] || key;
+                  
+                  return (
+                    <div key={key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '12px' }}>
+                      <span style={{ fontSize: '0.95rem', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{label}</span>
+                      <span style={{ fontWeight: '600', fontSize: '1.05rem', color: 'rgba(255,255,255,0.95)', textAlign: 'right', maxWidth: '60%' }}>{String(value)}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Equipamento de Destaque */}
+            {specs.equipment && Array.isArray(specs.equipment) && specs.equipment.length > 0 && (
+              <div>
+                <h3 style={{ marginBottom: '25px', color: 'rgba(255,255,255,1)', fontSize: '1.3rem', fontWeight: 'bold' }}>Equipamento de Destaque</h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '16px' }}>
+                  {specs.equipment.map((item: string, idx: number) => (
+                    <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', color: 'rgba(255,255,255,0.75)', fontSize: '1rem', lineHeight: '1.4' }}>
+                      <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent-primary)', marginTop: '8px', flexShrink: 0 }}></div>
+                      <span>{item}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
+            )}
 
-              {/* Equipamento de Destaque */}
-              {specs.equipment && Array.isArray(specs.equipment) && specs.equipment.length > 0 && (
-                <div>
-                  <h3 style={{ marginBottom: '25px', color: 'rgba(255,255,255,1)', fontSize: '1.3rem', fontWeight: 'bold' }}>Equipamento de Destaque</h3>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '16px' }}>
-                    {specs.equipment.map((item: string, idx: number) => (
-                      <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', color: 'rgba(255,255,255,0.75)', fontSize: '1rem', lineHeight: '1.4' }}>
-                        <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent-primary)', marginTop: '8px', flexShrink: 0 }}></div>
-                        <span>{item}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-            </div>
           </div>
         </div>
       </main>
