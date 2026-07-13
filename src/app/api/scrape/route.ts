@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import * as cheerio from 'cheerio';
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 export const runtime = 'edge';
 
@@ -76,7 +77,39 @@ export async function POST(request: Request) {
         let cleanDesc = (car.htmlDescription || '').replace(/<br\s*\/?>/gi, '\n');
         cleanDesc = cleanDesc.replace(/(<([^>]+)>)/gi, ""); // remove as restantes tags HTML
         
-        const translatedDescription = await translateText(cleanDesc);
+        let translatedDescription = cleanDesc;
+        const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+        
+        if (GEMINI_API_KEY && cleanDesc) {
+          try {
+            const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            const prompt = `Atua como um vendedor de carros de luxo em Portugal. Escreve uma descrição apaixonante, única e altamente persuasiva para o seguinte carro, otimizada para web (com parágrafos curtos e alguns emojis elegantes).
+            
+Detalhes técnicos conhecidos:
+- Título: ${car.title || car.shortTitle}
+- Preço: ${car.price && car.price.grs ? car.price.grs.localized : (car.price || 'Sob Consulta')}
+- Combustível: ${car.fuel || 'Desconhecido'}
+- Quilometragem: ${car.mileage || 'Desconhecida'}
+
+Descrição original do anúncio (traduz/adapta isto mas foca-te em vender o carro de forma premium em Portugal):
+${cleanDesc.substring(0, 2500)}
+
+Regras: 
+- Apenas escreve a descrição final pronta a publicar (não respondas 'Aqui está a descrição').
+- Não inventes dados técnicos que não constem na lista ou na descrição original.
+- O teu tom deve inspirar confiança e luxo.
+- Adiciona uma chamada à ação (CTA) no final a dizer que tratamos de toda a importação, legalização e entrega chave-na-mão na Consulcar.`;
+
+            const result = await model.generateContent(prompt);
+            translatedDescription = result.response.text();
+          } catch (e) {
+            console.error("Erro no Gemini, a usar tradutor normal:", e);
+            translatedDescription = await translateText(cleanDesc);
+          }
+        } else {
+          translatedDescription = await translateText(cleanDesc);
+        }
         
         let translatedEquipment = car.features || [];
         if (translatedEquipment.length > 0) {
