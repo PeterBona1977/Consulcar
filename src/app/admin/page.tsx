@@ -40,6 +40,24 @@ export default function AdminPage() {
   const [carImages, setCarImages] = useState<string[]>([]);
   const [carDesc, setCarDesc] = useState("");
   const [carOriginalUrl, setCarOriginalUrl] = useState("");
+  const [marginPercent, setMarginPercent] = useState("");
+  
+  const applyMargin = () => {
+    const margin = parseFloat(marginPercent);
+    if (isNaN(margin) || !carPrice) return;
+    
+    // Remove pontos de milhares (PT/DE) e símbolo €
+    let numericStr = carPrice.replace(/\./g, '').replace(/€/g, '').trim();
+    // Substitui vírgula decimal por ponto
+    numericStr = numericStr.replace(',', '.');
+    
+    const basePrice = parseFloat(numericStr);
+    if (!isNaN(basePrice)) {
+      const newPrice = Math.round(basePrice * (1 + margin / 100));
+      // Formata de volta para ficar estilo 24.900 €
+      setCarPrice(new Intl.NumberFormat('de-DE').format(newPrice) + ' €');
+    }
+  };
   
   // Dinâmicos
   const [specs, setSpecs] = useState<{key: string, value: string}[]>([{key: '', value: ''}]);
@@ -385,8 +403,12 @@ export default function AdminPage() {
                   <input required value={carTitle} onChange={e=>setCarTitle(e.target.value)} type="text" style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '6px' }} placeholder="Ex: Suzuki Vitara 1.4" />
                 </div>
                 <div>
-                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Preço</label>
-                  <input required value={carPrice} onChange={e=>setCarPrice(e.target.value)} type="text" style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '6px' }} placeholder="Ex: 24.900 €" />
+                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Preço de Venda</label>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <input required value={carPrice} onChange={e=>setCarPrice(e.target.value)} type="text" style={{ flex: 1, padding: '10px', border: '1px solid #ccc', borderRadius: '6px' }} placeholder="Ex: 24.900 €" />
+                    <input type="number" value={marginPercent} onChange={e=>setMarginPercent(e.target.value)} placeholder="% Margem" style={{ width: '110px', padding: '10px', border: '1px solid #ccc', borderRadius: '6px' }} />
+                    <button type="button" onClick={applyMargin} style={{ padding: '10px 15px', background: '#00d2ff', color: 'black', fontWeight: 'bold', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Aplicar</button>
+                  </div>
                 </div>
                 <div>
                   <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Imagem URL: {carImages.length > 0 && <span style={{color:'green', fontSize:'0.8em'}}>({carImages.length} fotos extraídas da galeria)</span>}</label>
