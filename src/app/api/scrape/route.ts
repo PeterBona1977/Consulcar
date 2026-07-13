@@ -96,6 +96,7 @@ ${cleanDesc.substring(0, 2500)}
 
 Regras ESTRITAS: 
 - NUNCA incluas nomes de pessoas, stands originais (alemães), contactos telefónicos, moradas, sites ou emails que venham na descrição original. Elimina qualquer rasto do vendedor original.
+- NUNCA menciones o preço do veículo na descrição! O preço já tem o seu próprio lugar de destaque no site.
 - ESCREVE EXCLUSIVAMENTE EM PORTUGUÊS DE PORTUGAL (PT-PT), independentemente do idioma original!
 - O texto tem de ser curto, direto ao ponto e focado na emoção e na exclusividade desta máquina.
 - Usa alguns emojis elegantes, sem exagerar.
