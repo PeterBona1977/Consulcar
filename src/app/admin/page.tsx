@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 interface DictionaryEntry {
   id: string;
@@ -13,6 +14,16 @@ interface DictionaryEntry {
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState("viaturas");
+  
+  // Auth
+  const [session, setSession] = useState<any>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const router = useRouter();
+
+  // Gestão de Admins
+  const [admins, setAdmins] = useState<any[]>([]);
+  const [newAdminEmail, setNewAdminEmail] = useState("");
+  const [newAdminPassword, setNewAdminPassword] = useState("");
   
   // Dicionário
   const [dictionary, setDictionary] = useState<DictionaryEntry[]>([]);
@@ -38,9 +49,80 @@ export default function AdminPage() {
   const [publishedVehicles, setPublishedVehicles] = useState<any[]>([]);
 
   useEffect(() => {
-    fetchDictionary();
-    fetchPublishedVehicles();
+    checkUser();
   }, []);
+
+  const checkUser = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      router.push('/admin/login');
+    } else {
+      setSession(session);
+      setAuthLoading(false);
+      fetchDictionary();
+      fetchPublishedVehicles();
+      fetchAdmins(session.access_token);
+    }
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push('/admin/login');
+  };
+
+  const fetchAdmins = async (token: string) => {
+    try {
+      const res = await fetch('/api/admin/users', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (res.ok) setAdmins(data.users || []);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleCreateAdmin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!session) return;
+    setStatus("A criar administrador...");
+    try {
+      const res = await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({ email: newAdminEmail, password: newAdminPassword })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      
+      setStatus("Administrador criado com sucesso!");
+      setTimeout(() => setStatus(""), 5000);
+      setNewAdminEmail("");
+      setNewAdminPassword("");
+      fetchAdmins(session.access_token);
+    } catch (error: any) {
+      setStatus(`Erro: ${error.message}`);
+    }
+  };
+
+  const handleDeleteAdmin = async (id: string) => {
+    if (!session || !confirm("Tem a certeza que deseja eliminar este administrador?")) return;
+    try {
+      const res = await fetch(`/api/admin/users?id=${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${session.access_token}` }
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      
+      fetchAdmins(session.access_token);
+    } catch (error: any) {
+      alert(`Erro: ${error.message}`);
+    }
+  };
 
   const fetchDictionary = async () => {
     const { data } = await supabase.from('import_dictionary').select('*').order('created_at', { ascending: false });
@@ -239,6 +321,10 @@ export default function AdminPage() {
     }
   };
 
+  if (authLoading) {
+    return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>A verificar autenticação...</div>;
+  }
+
   return (
     <div style={{ minHeight: '100vh', background: '#f5f5f5', color: '#333', padding: '50px 20px' }}>
       <style>{`
@@ -249,17 +335,23 @@ export default function AdminPage() {
       `}</style>
       <div style={{ maxWidth: '1000px', margin: '0 auto', background: 'white', borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.1)', overflow: 'hidden' }}>
         
-        <div style={{ display: 'flex', borderBottom: '1px solid #ddd', background: '#111' }}>
-          <button onClick={() => setActiveTab('viaturas')} style={{ flex: 1, padding: '20px', background: activeTab === 'viaturas' ? '#222' : '#111', color: 'white', border: 'none', cursor: 'pointer', fontSize: '1.1rem', fontWeight: 'bold' }}>
+        <div style={{ display: 'flex', borderBottom: '1px solid #ddd', background: '#111', flexWrap: 'wrap' }}>
+          <button onClick={() => setActiveTab('viaturas')} style={{ flex: 1, padding: '15px', background: activeTab === 'viaturas' ? '#222' : '#111', color: 'white', border: 'none', cursor: 'pointer', fontSize: '1rem', fontWeight: 'bold' }}>
             🚘 Nova Viatura
           </button>
-          <button onClick={() => setActiveTab('gestao')} style={{ flex: 1, padding: '20px', background: activeTab === 'gestao' ? '#222' : '#111', color: 'white', border: 'none', cursor: 'pointer', fontSize: '1.1rem', fontWeight: 'bold' }}>
-            📋 Viaturas Publicadas
+          <button onClick={() => setActiveTab('gestao')} style={{ flex: 1, padding: '15px', background: activeTab === 'gestao' ? '#222' : '#111', color: 'white', border: 'none', cursor: 'pointer', fontSize: '1rem', fontWeight: 'bold' }}>
+            📋 Viaturas
           </button>
-          <button onClick={() => setActiveTab('dicionario')} style={{ flex: 1, padding: '20px', background: activeTab === 'dicionario' ? '#222' : '#111', color: 'white', border: 'none', cursor: 'pointer', fontSize: '1.1rem', fontWeight: 'bold' }}>
-            🧠 Dicionário Inteligente
+          <button onClick={() => setActiveTab('dicionario')} style={{ flex: 1, padding: '15px', background: activeTab === 'dicionario' ? '#222' : '#111', color: 'white', border: 'none', cursor: 'pointer', fontSize: '1rem', fontWeight: 'bold' }}>
+            🧠 Dicionário
           </button>
-          <Link href="/" style={{ padding: '20px', color: '#00d2ff', textDecoration: 'none', display: 'flex', alignItems: 'center' }}>Voltar ao Site</Link>
+          <button onClick={() => setActiveTab('admins')} style={{ flex: 1, padding: '15px', background: activeTab === 'admins' ? '#222' : '#111', color: 'white', border: 'none', cursor: 'pointer', fontSize: '1rem', fontWeight: 'bold' }}>
+            👥 Admins
+          </button>
+          <div style={{ padding: '15px', display: 'flex', gap: '15px', alignItems: 'center' }}>
+            <Link href="/" style={{ color: '#00d2ff', textDecoration: 'none', fontSize: '0.9rem' }}>Site Principal</Link>
+            <button onClick={handleLogout} style={{ background: 'transparent', color: '#ef5350', border: '1px solid #ef5350', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.9rem' }}>Sair</button>
+          </div>
         </div>
 
         <div style={{ padding: '40px' }}>
@@ -419,6 +511,48 @@ export default function AdminPage() {
                   ))}
                   {dictionary.length === 0 && (
                     <tr><td colSpan={4} style={{ padding: '20px', textAlign: 'center', color: '#888' }}>O dicionário está vazio.</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* TAB GESTÃO DE ADMINS */}
+          {activeTab === 'admins' && (
+            <div>
+              <h2 style={{ marginBottom: '20px' }}>Gestão de Administradores</h2>
+              {status && <div style={{ padding: '15px', background: '#e0f7fa', color: '#006064', marginBottom: '20px', borderRadius: '8px' }}>{status}</div>}
+              
+              <p style={{ marginBottom: '30px', color: '#666' }}>Adicione ou remova utilizadores com acesso a este painel.</p>
+              
+              <form onSubmit={handleCreateAdmin} style={{ display: 'flex', gap: '15px', marginBottom: '40px', background: '#f9f9f9', padding: '20px', borderRadius: '8px', flexWrap: 'wrap' }}>
+                <input required type="email" value={newAdminEmail} onChange={e=>setNewAdminEmail(e.target.value)} placeholder="Email do novo admin" style={{ flex: 1, minWidth: '200px', padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }} />
+                <input required type="password" value={newAdminPassword} onChange={e=>setNewAdminPassword(e.target.value)} placeholder="Password" style={{ flex: 1, minWidth: '200px', padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }} />
+                <button type="submit" style={{ padding: '10px 20px', background: '#000', color: 'white', fontWeight: 'bold', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Criar Administrador</button>
+              </form>
+
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                <thead>
+                  <tr style={{ background: '#eee' }}>
+                    <th style={{ padding: '12px' }}>Email</th>
+                    <th style={{ padding: '12px' }}>Criado em</th>
+                    <th style={{ padding: '12px', width: '100px' }}>Ações</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {admins.map(a => (
+                    <tr key={a.id} style={{ borderBottom: '1px solid #eee' }}>
+                      <td style={{ padding: '12px', fontWeight: 'bold' }}>{a.email} {session?.user?.email === a.email && <span style={{fontSize: '0.8rem', color: '#888', fontWeight: 'normal'}}>(Tu)</span>}</td>
+                      <td style={{ padding: '12px' }}>{new Date(a.created_at).toLocaleDateString('pt-PT')}</td>
+                      <td style={{ padding: '12px' }}>
+                        {session?.user?.email !== a.email && (
+                          <button onClick={() => handleDeleteAdmin(a.id)} style={{ padding: '6px 12px', background: '#ffebee', color: '#c62828', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Apagar</button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                  {admins.length === 0 && (
+                    <tr><td colSpan={3} style={{ padding: '20px', textAlign: 'center', color: '#888' }}>Sem dados.</td></tr>
                   )}
                 </tbody>
               </table>
