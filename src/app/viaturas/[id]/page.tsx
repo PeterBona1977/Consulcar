@@ -14,10 +14,18 @@ export default function ViaturaDetails() {
   const [settings, setSettings] = useState<any>(null);
   const [activeImage, setActiveImage] = useState<string>("");
 
+  // Modal State
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formSuccess, setFormSuccess] = useState(false);
+  const [entityType, setEntityType] = useState("individual");
+  const [companyName, setCompanyName] = useState("");
+  const [contactName, setContactName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+
   useEffect(() => {
     const fetchCar = async () => {
-      // In Next.js App Router, params might be a Promise or direct object depending on the hook version.
-      // useParams() handles it gracefully on the client.
       const carId = params?.id;
       if (!carId) return;
 
@@ -35,10 +43,46 @@ export default function ViaturaDetails() {
     fetchCar();
   }, [params]);
 
+  const handleProposalSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setFormSuccess(false);
+    
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          entity_type: entityType,
+          company_name: companyName,
+          contact_name: contactName,
+          email: email,
+          phone: phone,
+          brand: car.title,
+          model: `ID: ${car.id}`,
+          extras: `URL: ${window.location.href}\nPreço: ${car.price}`
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Erro ao enviar pedido');
+      
+      setFormSuccess(true);
+      setTimeout(() => {
+        setFormSuccess(false);
+        setIsModalOpen(false);
+      }, 4000);
+    } catch (error) {
+      console.error("Erro:", error);
+      alert("Ocorreu um erro ao enviar o pedido. Tente novamente.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   if (loading) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>A carregar viatura premium...</div>;
   if (!car) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Viatura não encontrada.</div>;
 
-  // Garantir que as imagens são um array e que a imagem principal está presente
   let imagesArray: string[] = [];
   if (Array.isArray(car.images)) {
     imagesArray = car.images;
@@ -111,9 +155,9 @@ export default function ViaturaDetails() {
               <div className="mobile-fixed-cta" style={{ background: 'var(--surface-light, rgba(20,20,20,0.5))', padding: '30px', borderRadius: '16px', border: '1px solid var(--accent-primary)', backdropFilter: 'blur(10px)', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
                 <h3 style={{ fontSize: '1.3rem', marginBottom: '15px' }}>Quer importar esta viatura?</h3>
                 <p style={{ color: 'rgba(255,255,255,0.6)', marginBottom: '25px', lineHeight: 1.5 }}>Tratamos de todo o processo de negociação, transporte, legalização e entrega chave-na-mão.</p>
-                <Link href={`/?car=${car.id}#pedido`} className="btn btn-primary" style={{ display: 'block', fontSize: '1.2rem', padding: '16px', textAlign: 'center', borderRadius: '8px', width: '100%', fontWeight: 'bold' }}>
+                <button onClick={() => setIsModalOpen(true)} className="btn btn-primary" style={{ display: 'block', fontSize: '1.2rem', padding: '16px', textAlign: 'center', borderRadius: '8px', width: '100%', fontWeight: 'bold', border: 'none', cursor: 'pointer' }}>
                   Pedir Proposta Chave-na-Mão
-                </Link>
+                </button>
                 {car.original_url && (
                   <a href={car.original_url} target="_blank" rel="noopener noreferrer" style={{ display: 'block', textAlign: 'center', marginTop: '20px', color: 'rgba(255,255,255,0.4)', textDecoration: 'none', fontSize: '0.9rem', transition: 'color 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.color = 'var(--accent-primary)'} onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.4)'}>
                     Ver anúncio original no estrangeiro ↗
@@ -177,6 +221,46 @@ export default function ViaturaDetails() {
           </div>
         </div>
       </main>
+
+      {/* Modal de Proposta */}
+      {isModalOpen && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+          <div style={{ background: '#111', width: '100%', maxWidth: '500px', borderRadius: '16px', padding: '30px', position: 'relative', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <button onClick={() => setIsModalOpen(false)} style={{ position: 'absolute', top: '15px', right: '15px', background: 'transparent', border: 'none', color: '#fff', fontSize: '1.5rem', cursor: 'pointer' }}>&times;</button>
+            <h3 style={{ fontSize: '1.5rem', marginBottom: '10px' }}>Pedir Proposta</h3>
+            <p style={{ color: 'var(--accent-primary)', marginBottom: '25px', fontWeight: 'bold' }}>{car.title}</p>
+            
+            {formSuccess ? (
+              <div style={{ padding: '20px', background: 'rgba(0, 255, 0, 0.1)', color: '#4ade80', borderRadius: '8px', textAlign: 'center' }}>
+                <h3>Pedido enviado com sucesso!</h3>
+                <p style={{ marginTop: '10px' }}>A nossa equipa irá contactar em breve.</p>
+              </div>
+            ) : (
+              <form onSubmit={handleProposalSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                <div style={{ display: 'flex', gap: '15px', marginBottom: '10px' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer' }}>
+                    <input type="radio" name="entityTypeModal" checked={entityType === 'individual'} onChange={() => setEntityType('individual')} /> Particular
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer' }}>
+                    <input type="radio" name="entityTypeModal" checked={entityType === 'company'} onChange={() => setEntityType('company')} /> Empresa
+                  </label>
+                </div>
+                
+                {entityType === 'company' && (
+                  <input type="text" required placeholder="Nome da Empresa" value={companyName} onChange={e => setCompanyName(e.target.value)} style={{ width: '100%', padding: '12px', borderRadius: '6px', border: '1px solid #333', background: '#222', color: '#fff' }} />
+                )}
+                <input type="text" required placeholder="O seu Nome" value={contactName} onChange={e => setContactName(e.target.value)} style={{ width: '100%', padding: '12px', borderRadius: '6px', border: '1px solid #333', background: '#222', color: '#fff' }} />
+                <input type="email" required placeholder="O seu Email" value={email} onChange={e => setEmail(e.target.value)} style={{ width: '100%', padding: '12px', borderRadius: '6px', border: '1px solid #333', background: '#222', color: '#fff' }} />
+                <input type="tel" required placeholder="O seu Telefone" value={phone} onChange={e => setPhone(e.target.value)} style={{ width: '100%', padding: '12px', borderRadius: '6px', border: '1px solid #333', background: '#222', color: '#fff' }} />
+                
+                <button type="submit" disabled={isSubmitting} className="btn btn-primary" style={{ width: '100%', padding: '15px', borderRadius: '6px', border: 'none', fontWeight: 'bold', fontSize: '1.1rem', marginTop: '10px', cursor: isSubmitting ? 'not-allowed' : 'pointer', opacity: isSubmitting ? 0.7 : 1 }}>
+                  {isSubmitting ? 'A enviar...' : 'Enviar Pedido'}
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
     </>
   );
 }
