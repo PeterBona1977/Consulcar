@@ -105,11 +105,11 @@ Regras ESTRITAS:
 
             let result;
             try {
-              const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
+              const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-lite" });
               result = await model.generateContent(prompt);
             } catch (err1: any) {
-              console.log("O servidor Gemini principal está sobrecarregado. A tentar o modelo de reserva (Lite)...", err1.message);
-              const fallbackModel = genAI.getGenerativeModel({ model: "gemini-flash-lite-latest" });
+              console.log("O servidor Lite falhou. A tentar o modelo de reserva...", err1.message);
+              const fallbackModel = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
               result = await fallbackModel.generateContent(prompt);
             }
             
