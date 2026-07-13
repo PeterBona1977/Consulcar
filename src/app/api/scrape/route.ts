@@ -78,7 +78,7 @@ export async function POST(request: Request) {
         cleanDesc = cleanDesc.replace(/(<([^>]+)>)/gi, ""); // remove as restantes tags HTML
         
         let translatedDescription = cleanDesc;
-        const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+        const GEMINI_API_KEY = (process.env.GEMINI_API_KEY || '').trim();
         
         if (GEMINI_API_KEY && cleanDesc) {
           try {
