@@ -87,18 +87,35 @@ export default function AdminPage() {
       fetchDictionary();
       fetchPublishedVehicles();
       fetchAdmins(session.access_token);
-      fetchLeads();
+      fetchLeads(session.access_token);
     }
   };
   
-  const fetchLeads = async () => {
-    const { data } = await supabase.from('leads').select('*').order('created_at', { ascending: false });
-    if (data) setLeads(data);
+  const fetchLeads = async (token?: string) => {
+    const currentToken = token || session?.access_token;
+    if (!currentToken) return;
+    try {
+      const res = await fetch('/api/admin/leads', {
+        headers: { 'Authorization': `Bearer ${currentToken}` }
+      });
+      const data = await res.json();
+      if (res.ok && data.leads) setLeads(data.leads);
+    } catch(e) { console.error(e) }
   };
   
   const updateLeadStatus = async (id: string, status: string) => {
-    await supabase.from('leads').update({ status }).eq('id', id);
-    fetchLeads();
+    if (!session?.access_token) return;
+    try {
+      await fetch('/api/admin/leads', {
+        method: 'PATCH',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}` 
+        },
+        body: JSON.stringify({ id, status })
+      });
+      fetchLeads();
+    } catch(e) { console.error(e) }
   };
 
   const handleLogout = async () => {
