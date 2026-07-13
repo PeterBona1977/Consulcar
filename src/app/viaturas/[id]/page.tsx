@@ -93,8 +93,8 @@ export default function ViaturaDetails() {
             
             {/* Coluna Esquerda: Galeria */}
             <div>
-              <div style={{ width: '100%', height: '450px', borderRadius: '16px', overflow: 'hidden', marginBottom: '15px', border: '1px solid rgba(255,255,255,0.1)', background: '#000' }}>
-                <img src={activeImage} alt={car.title} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+              <div style={{ width: '100%', aspectRatio: '4/3', maxHeight: '500px', borderRadius: '16px', overflow: 'hidden', marginBottom: '15px', border: '1px solid rgba(255,255,255,0.1)', background: 'var(--surface-light, #111)' }}>
+                <img src={activeImage} alt={car.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               </div>
               <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '10px', scrollbarWidth: 'none' }}>
                 {images.map((img: string, idx: number) => (
