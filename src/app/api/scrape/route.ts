@@ -26,10 +26,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'O URL é obrigatório' }, { status: 400 });
     }
 
-    // Integração com serviço de Proxy Anti-Bot para Produção (ZenRows)
-    // O Cloudflare Edge não suporta Puppeteer, portanto o scraping direto do Mobile.de é bloqueado.
-    // É necessária uma chave API configurada nas variáveis de ambiente do Cloudflare.
-    const ZENROWS_API_KEY = process.env.ZENROWS_API_KEY;
+    // Integração com serviço de Proxy (ScraperAPI)
+    const SCRAPER_API_KEY = process.env.SCRAPER_API_KEY || 'e5092038ee5044fc3ad892e9f180f52b';
     
     let fetchUrl = url;
     let fetchOptions: RequestInit = {
@@ -40,19 +38,18 @@ export async function POST(request: Request) {
       }
     };
 
-    if (url.includes('mobile.de') || url.includes('standvirtual.com')) {
-      if (!ZENROWS_API_KEY) {
+    if (url.includes('mobile.de') || url.includes('standvirtual.com') || url.includes('autoscout24')) {
+      if (!SCRAPER_API_KEY) {
         return NextResponse.json({ 
-          error: 'Para extrair dados do Mobile.de em produção no Cloudflare, configure a variável de ambiente ZENROWS_API_KEY com a sua chave do ZenRows.' 
+          error: 'A chave da API ScraperAPI não está configurada.' 
         }, { status: 403 });
       }
       
-      if (url.includes('mobile.de')) {
-        // O Mobile.de requer bypass avançado do Datadome (pode demorar 30-40s e dar timeout no Cloudflare)
-        fetchUrl = `https://api.zenrows.com/v1/?apikey=${ZENROWS_API_KEY}&url=${encodeURIComponent(url)}&premium_proxy=true&antibot=true`;
+      if (url.includes('mobile.de') || url.includes('autoscout24')) {
+        // Sites mais complexos podem precisar de javascript rendering e proxy premium
+        fetchUrl = `http://api.scraperapi.com?api_key=${SCRAPER_API_KEY}&url=${encodeURIComponent(url)}&render=true&premium=true`;
       } else {
-        // O Standvirtual não requer bypass avançado e é muito mais rápido, evitando o timeout de 10s do Cloudflare
-        fetchUrl = `https://api.zenrows.com/v1/?apikey=${ZENROWS_API_KEY}&url=${encodeURIComponent(url)}`;
+        fetchUrl = `http://api.scraperapi.com?api_key=${SCRAPER_API_KEY}&url=${encodeURIComponent(url)}`;
       }
       
       fetchOptions = {}; // O serviço de proxy trata dos headers e fingerprinting
@@ -71,29 +68,108 @@ export async function POST(request: Request) {
     const html = await response.text();
     const $ = cheerio.load(html);
 
-    // Generic fallback scraping (works for most modern sites including Standvirtual/Mobile.de)
+    // Generic fallback scraping
     let title = $('meta[property="og:title"]').attr('content') || $('title').text();
-    const image = $('meta[property="og:image"]').attr('content') || '';
-    const description = $('meta[property="og:description"]').attr('content') || $('meta[name="description"]').attr('content') || '';
-    
-    // Attempt specific price extractors
-    let price = $('.offer-price__number').text().trim() || // Standvirtual
-                $('.h3.u-text-bold').first().text().trim() || // Mobile.de
-                'Sob Consulta';
+    let image = $('meta[property="og:image"]').attr('content') || '';
+    let description = $('meta[property="og:description"]').attr('content') || $('meta[name="description"]').attr('content') || '';
+    let price = $('.offer-price__number').text().trim() || $('.h3.u-text-bold').first().text().trim() || 'Sob Consulta';
 
-    // Extrair equipamentos / extras (Genérico para Mobile.de / Standvirtual)
-    const equipment: string[] = [];
-    $('.bullet-list li, #features-bullet-list li, .g-col-12 ul li, .listing-features li, .vehicle-features li, .c-box--content li').each((i, el) => {
-      const text = $(el).text().trim();
-      if (text && text.length < 50 && text.length > 2 && !equipment.includes(text)) {
-        equipment.push(text);
+    let equipment: string[] = [];
+    let specs: {key: string, value: string}[] = [];
+    let images: string[] = [];
+
+    // --- Tentativa de extração via __NEXT_DATA__ (Standvirtual / Next.js) ---
+    try {
+      const nextDataText = $('#__NEXT_DATA__').html();
+      if (nextDataText) {
+        const nextData = JSON.parse(nextDataText);
+        
+        let adObj: any = null;
+        // Função para procurar o objeto do anúncio recursivamente
+        const findAd = (obj: any) => {
+          if (!obj || typeof obj !== 'object') return;
+          if (obj.title && obj.price && (obj.parameters || obj.attributes || obj.features || obj.description)) {
+            adObj = obj;
+            return;
+          }
+          Object.values(obj).forEach(val => {
+            if (!adObj) findAd(val);
+          });
+        };
+        findAd(nextData);
+
+        if (adObj) {
+          if (adObj.title) title = adObj.title;
+          if (adObj.description) description = adObj.description.replace(/(<([^>]+)>)/gi, ""); // remover HTML
+          if (adObj.price && adObj.price.value) price = adObj.price.value.toString() + ' €';
+          
+          // Extrair Fotos
+          if (adObj.photos && Array.isArray(adObj.photos)) {
+             images = adObj.photos.map((p: any) => typeof p === 'string' ? p : (p.url || p.link)).filter(Boolean);
+          } else if (adObj.images && Array.isArray(adObj.images)) {
+             images = adObj.images.map((p: any) => typeof p === 'string' ? p : (p.url || p.link)).filter(Boolean);
+          }
+
+          // Extrair Specs (Dados Técnicos)
+          const params = adObj.parameters || adObj.attributes || [];
+          if (Array.isArray(params)) {
+             params.forEach((p: any) => {
+               if (p.key === 'equipment' || p.key === 'features') {
+                 if (Array.isArray(p.value)) equipment = [...equipment, ...p.value];
+               } else if (p.label && p.value && typeof p.value === 'string') {
+                 specs.push({ key: p.label, value: p.value });
+               }
+             });
+          }
+
+          // Extrair Equipamentos (Features)
+          if (adObj.features && Array.isArray(adObj.features)) {
+             equipment = [...equipment, ...adObj.features];
+          }
+        }
       }
-    });
+    } catch (e) {
+      console.log('Aviso: Falha ao fazer parse do __NEXT_DATA__', e);
+    }
 
-    // Cleanup text
+    // --- Fallbacks baseados no HTML (se o JSON não tiver as informações) ---
+    
+    // Descrição Real (Fallbacks DOM)
+    if (!description || description.length < 200) {
+      const domDesc = $('div[data-testid="ad-description"]').text().trim() || $('.offer-description__content').text().trim();
+      if (domDesc) description = domDesc;
+    }
+
+    // Imagens (Galeria Fallback)
+    if (images.length === 0) {
+      $('img').each((i, el) => {
+        const src = $(el).attr('src');
+        if (src && (src.includes('apollo.olxcdn.com') || src.includes('mobile.de/')) && src.includes('image')) {
+           // Corrigir resoluções baixas se possível
+           const hqSrc = src.replace(/;s=\d+x\d+/, ';s=1000x0');
+           if (!images.includes(hqSrc)) images.push(hqSrc);
+        }
+      });
+      if (image && !images.includes(image)) images.unshift(image);
+    }
+
+    // Equipamentos (Fallback DOM)
+    if (equipment.length === 0) {
+      $('.bullet-list li, #features-bullet-list li, .offer-features__item, .equipment-list li, li').each((i, el) => {
+        const text = $(el).text().trim();
+        // Filtrar strings que parecem ser equipamento
+        if (text && text.length < 50 && text.length > 3 && !text.includes('\\n')) {
+          if (!equipment.includes(text)) equipment.push(text);
+        }
+      });
+      // Limitar a 50 equipamentos para não apanhar lixo do menu
+      equipment = equipment.slice(0, 50);
+    }
+
+    // Limpezas
     title = title.replace(' - Standvirtual', '').replace(' no Standvirtual', '').trim();
-    if (price !== 'Sob Consulta') {
-      price = price.replace(/[^0-9,€ ]/g, '').trim() + ' €';
+    if (price !== 'Sob Consulta' && !price.includes('€')) {
+      price = price.replace(/[^0-9, ]/g, '').trim() + ' €';
     }
 
     // --- Tradução Automática ---
@@ -101,18 +177,19 @@ export async function POST(request: Request) {
     
     let translatedEquipment = equipment;
     if (equipment.length > 0) {
-      // Juntar com separador para traduzir tudo numa só chamada à API
       const joinedText = equipment.join(' || ');
       const translatedJoined = await translateText(joinedText);
-      translatedEquipment = translatedJoined.split(' || ').map(e => e.trim()).filter(e => e.length > 0);
+      translatedEquipment = translatedJoined.split('||').map(e => e.replace(/\|/g, '').trim()).filter(e => e.length > 0);
     }
 
     return NextResponse.json({
       title: title || 'Viatura Desconhecida',
-      image: image || 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&q=80&w=1000', // Premium fallback image
+      image: images.length > 0 ? images[0] : (image || 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&q=80&w=1000'),
+      images: images,
       description: translatedDescription,
       price: price,
       equipment: translatedEquipment,
+      specs: specs,
       originalUrl: url
     });
 
