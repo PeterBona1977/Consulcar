@@ -25,6 +25,9 @@ export default function AdminPage() {
   const [newAdminEmail, setNewAdminEmail] = useState("");
   const [newAdminPassword, setNewAdminPassword] = useState("");
   
+  // Leads / CRM
+  const [leads, setLeads] = useState<any[]>([]);
+  
   // Dicionário
   const [dictionary, setDictionary] = useState<DictionaryEntry[]>([]);
   const [newDict, setNewDict] = useState({ category: 'equipment', foreign_term: '', pt_term: '' });
@@ -62,7 +65,18 @@ export default function AdminPage() {
       fetchDictionary();
       fetchPublishedVehicles();
       fetchAdmins(session.access_token);
+      fetchLeads();
     }
+  };
+  
+  const fetchLeads = async () => {
+    const { data } = await supabase.from('leads').select('*').order('created_at', { ascending: false });
+    if (data) setLeads(data);
+  };
+  
+  const updateLeadStatus = async (id: string, status: string) => {
+    await supabase.from('leads').update({ status }).eq('id', id);
+    fetchLeads();
   };
 
   const handleLogout = async () => {
@@ -345,6 +359,9 @@ export default function AdminPage() {
           <button onClick={() => setActiveTab('dicionario')} style={{ flex: 1, padding: '15px', background: activeTab === 'dicionario' ? '#222' : '#111', color: 'white', border: 'none', cursor: 'pointer', fontSize: '1rem', fontWeight: 'bold' }}>
             🧠 Dicionário
           </button>
+          <button onClick={() => setActiveTab('leads')} style={{ flex: 1, padding: '15px', background: activeTab === 'leads' ? '#222' : '#111', color: 'white', border: 'none', cursor: 'pointer', fontSize: '1rem', fontWeight: 'bold' }}>
+            📩 Mensagens
+          </button>
           <button onClick={() => setActiveTab('admins')} style={{ flex: 1, padding: '15px', background: activeTab === 'admins' ? '#222' : '#111', color: 'white', border: 'none', cursor: 'pointer', fontSize: '1rem', fontWeight: 'bold' }}>
             👥 Admins
           </button>
@@ -514,6 +531,69 @@ export default function AdminPage() {
                   )}
                 </tbody>
               </table>
+            </div>
+          )}
+
+          {/* TAB MENSAGENS / LEADS */}
+          {activeTab === 'leads' && (
+            <div>
+              <h2 style={{ marginBottom: '20px' }}>Caixa de Entrada e CRM</h2>
+              <p style={{ marginBottom: '30px', color: '#666' }}>Lista de pedidos de contacto e potenciais clientes angariados na Homepage.</p>
+              
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '800px' }}>
+                  <thead>
+                    <tr style={{ background: '#eee', borderBottom: '2px solid #ccc' }}>
+                      <th style={{ padding: '12px' }}>Data</th>
+                      <th style={{ padding: '12px' }}>Cliente</th>
+                      <th style={{ padding: '12px' }}>Contacto</th>
+                      <th style={{ padding: '12px' }}>Viatura Pedida</th>
+                      <th style={{ padding: '12px' }}>Estado</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {leads.map(lead => (
+                      <tr key={lead.id} style={{ borderBottom: '1px solid #eee', background: lead.status === 'novo' ? 'rgba(0, 210, 255, 0.05)' : 'transparent' }}>
+                        <td style={{ padding: '12px', fontSize: '0.9rem', color: '#666' }}>{new Date(lead.created_at).toLocaleString('pt-PT')}</td>
+                        <td style={{ padding: '12px' }}>
+                          <div style={{ fontWeight: 'bold' }}>{lead.contact_name}</div>
+                          {lead.entity_type === 'coletiva' && <div style={{ fontSize: '0.8rem', color: '#888' }}>Empresa: {lead.company_name}</div>}
+                        </td>
+                        <td style={{ padding: '12px' }}>
+                          <div><a href={`mailto:${lead.email}`} style={{ color: 'var(--accent-primary)', textDecoration: 'none' }}>{lead.email}</a></div>
+                          <div><a href={`tel:${lead.phone}`} style={{ color: '#666', textDecoration: 'none' }}>{lead.phone}</a></div>
+                        </td>
+                        <td style={{ padding: '12px' }}>
+                          <div style={{ fontWeight: 'bold' }}>{lead.brand} {lead.model}</div>
+                          {lead.extras && <div style={{ fontSize: '0.85rem', color: '#666', marginTop: '4px', maxWidth: '250px' }}>Extras: {lead.extras}</div>}
+                        </td>
+                        <td style={{ padding: '12px' }}>
+                          <select 
+                            value={lead.status || 'novo'} 
+                            onChange={(e) => updateLeadStatus(lead.id, e.target.value)}
+                            style={{ 
+                              padding: '8px', 
+                              borderRadius: '6px', 
+                              border: '1px solid #ccc',
+                              background: lead.status === 'novo' ? '#e3f2fd' : lead.status === 'contactado' ? '#e8f5e9' : '#fff',
+                              color: '#333',
+                              fontWeight: lead.status === 'novo' ? 'bold' : 'normal'
+                            }}
+                          >
+                            <option value="novo">🔵 Novo</option>
+                            <option value="em_analise">⏳ Em Análise</option>
+                            <option value="contactado">✅ Contactado</option>
+                            <option value="arquivado">📁 Arquivado</option>
+                          </select>
+                        </td>
+                      </tr>
+                    ))}
+                    {leads.length === 0 && (
+                      <tr><td colSpan={5} style={{ padding: '40px', textAlign: 'center', color: '#888' }}>Ainda não recebeu nenhuma mensagem.</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
 

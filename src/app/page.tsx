@@ -78,16 +78,23 @@ const defaultSettings = {
 
 export default function Home() {
   const [isScrolled, setIsScrolled] = useState(false);
-  const [entityType, setEntityType] = useState("individual");
-  const [links, setLinks] = useState<string[]>([""]);
-  const [files, setFiles] = useState<File[]>([]);
-  const [isDragging, setIsDragging] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [visibleCount, setVisibleCount] = useState(8);
   const [settings, setSettings] = useState<any>(defaultSettings);
   const [mounted, setMounted] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Form State
+  const [entityType, setEntityType] = useState("individual");
+  const [companyName, setCompanyName] = useState("");
+  const [contactName, setContactName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [brand, setBrand] = useState("");
+  const [model, setModel] = useState("");
+  const [extras, setExtras] = useState("");
+  const [formSuccess, setFormSuccess] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -120,21 +127,43 @@ export default function Home() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const handleAddLink = () => setLinks([...links, ""]);
-  const handleRemoveLink = (index: number) => { const newLinks = [...links]; newLinks.splice(index, 1); setLinks(newLinks); };
-  const handleLinkChange = (index: number, value: string) => { const newLinks = [...links]; newLinks[index] = value; setLinks(newLinks); };
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => { if (e.target.files) setFiles((prev) => [...prev, ...Array.from(e.target.files!)]); };
-  const handleDrop = (e: DragEvent<HTMLDivElement>) => { e.preventDefault(); setIsDragging(false); if (e.dataTransfer.files) setFiles((prev) => [...prev, ...Array.from(e.dataTransfer.files)]); };
-  const handleRemoveFile = (index: number) => setFiles((prev) => prev.filter((_, i) => i !== index));
-
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setTimeout(() => { alert("Pedido enviado com sucesso! A equipa Consulcar entrará em contacto em breve."); setIsSubmitting(false); }, 1500);
+    setFormSuccess(false);
+    
+    try {
+      const { error } = await supabase.from('leads').insert([{
+        entity_type: entityType,
+        company_name: companyName,
+        contact_name: contactName,
+        email: email,
+        phone: phone,
+        brand: brand,
+        model: model,
+        extras: extras
+      }]);
+
+      if (error) throw error;
+      
+      setFormSuccess(true);
+      // Reset form
+      setCompanyName(""); setContactName(""); setEmail(""); setPhone(""); setBrand(""); setModel(""); setExtras("");
+      setTimeout(() => setFormSuccess(false), 8000);
+    } catch (error) {
+      console.error("Erro ao enviar pedido:", error);
+      alert("Ocorreu um erro ao enviar o pedido. Por favor, tente novamente mais tarde.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const getSectionStyle = (section: any) => {
-    let style: React.CSSProperties = { paddingBottom: section.type === 'hero' ? '0' : '80px', paddingTop: section.type === 'hero' ? '0' : '80px', position: "relative" };
+    let style: React.CSSProperties = { 
+      paddingBottom: section.type === 'hero' ? '0' : '140px', 
+      paddingTop: section.type === 'hero' ? '0' : '140px', 
+      position: "relative" 
+    };
     if (section.bgColor && section.bgColor !== 'transparent') style.backgroundColor = section.bgColor;
     if (section.bgImage) {
       style.backgroundImage = `url(${section.bgImage})`;
@@ -311,23 +340,30 @@ export default function Home() {
                           </div>
                         </div>
                         {entityType === "coletiva" && (
-                          <div className="form-group"><label>Designação Social *</label><input type="text" placeholder="Ex: Consulcar Lda" required /></div>
+                          <div className="form-group"><label>Designação Social *</label><input type="text" placeholder="Ex: Consulcar Lda" required value={companyName} onChange={e => setCompanyName(e.target.value)} /></div>
                         )}
                       </div>
                       <div className="form-group-row">
-                        <div className="form-group" style={{ width: "100%" }}><label>Nome de Contacto *</label><input type="text" placeholder="O seu nome" required /></div>
+                        <div className="form-group" style={{ width: "100%" }}><label>Nome de Contacto *</label><input type="text" placeholder="O seu nome" required value={contactName} onChange={e => setContactName(e.target.value)} /></div>
                       </div>
                       <div className="form-group-row">
-                        <div className="form-group"><label>Email *</label><input type="email" placeholder="email@exemplo.com" required /></div>
-                        <div className="form-group"><label>Contacto Telefónico *</label><input type="tel" placeholder="+351 912 345 678" required /></div>
+                        <div className="form-group"><label>Email *</label><input type="email" placeholder="email@exemplo.com" required value={email} onChange={e => setEmail(e.target.value)} /></div>
+                        <div className="form-group"><label>Contacto Telefónico *</label><input type="tel" placeholder="+351 912 345 678" required value={phone} onChange={e => setPhone(e.target.value)} /></div>
                       </div>
                       <div className="form-section-title">Detalhes da Viatura</div>
                       <div className="form-group-row">
-                        <div className="form-group"><label>Marca *</label><input type="text" placeholder="Ex: BMW, Mercedes-Benz" required /></div>
-                        <div className="form-group"><label>Modelo *</label><input type="text" placeholder="Ex: Série 3" required /></div>
+                        <div className="form-group"><label>Marca *</label><input type="text" placeholder="Ex: BMW, Mercedes-Benz" required value={brand} onChange={e => setBrand(e.target.value)} /></div>
+                        <div className="form-group"><label>Modelo *</label><input type="text" placeholder="Ex: Série 3" required value={model} onChange={e => setModel(e.target.value)} /></div>
                       </div>
-                      <div className="form-group"><label>Extras e Especificações Desejadas</label><textarea rows={3} placeholder="Ex: Pacote Desportivo..."></textarea></div>
-                      <div className="form-actions"><button type="submit" className="btn btn-primary btn-block" disabled={isSubmitting}>{isSubmitting ? "A enviar..." : "Enviar Pedido"}</button></div>
+                      <div className="form-group"><label>Extras e Especificações Desejadas</label><textarea rows={3} placeholder="Ex: Pacote Desportivo, Teto Panorâmico..." value={extras} onChange={e => setExtras(e.target.value)}></textarea></div>
+                      
+                      {formSuccess && (
+                        <div style={{ padding: '15px', background: 'rgba(76, 175, 80, 0.1)', border: '1px solid #4CAF50', color: '#4CAF50', borderRadius: '8px', marginBottom: '20px', textAlign: 'center', fontWeight: 'bold' }}>
+                          Pedido enviado com sucesso! A equipa Consulcar entrará em contacto brevemente.
+                        </div>
+                      )}
+                      
+                      <div className="form-actions"><button type="submit" className="btn btn-primary btn-block" disabled={isSubmitting} style={{ padding: '20px', fontSize: '1.2rem', borderRadius: '12px' }}>{isSubmitting ? "A enviar..." : "Enviar Pedido de Cotação"}</button></div>
                     </form>
                   </div>
                 </div>
