@@ -41,11 +41,39 @@ export default function AdminPage() {
   const [carImages, setCarImages] = useState<string[]>([]);
   const [carDesc, setCarDesc] = useState("");
   const [carOriginalUrl, setCarOriginalUrl] = useState("");
-  const [marginPercent, setMarginPercent] = useState("");
-  
-  const applyMargin = () => {
-    const margin = parseFloat(marginPercent);
-    if (isNaN(margin) || !carPrice) return;
+  const [costs, setCosts] = useState<{description: string, value: string, isCustom?: boolean}[]>([]);
+  const [costOptions, setCostOptions] = useState<string[]>(['Transporte', 'Legalização']);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('costOptions');
+    if (saved) {
+      try {
+        setCostOptions(JSON.parse(saved));
+      } catch(e){}
+    }
+  }, []);
+
+  const handleAddCustomCost = (index: number, newDesc: string) => {
+    const trimmed = newDesc.trim();
+    if (trimmed && !costOptions.includes(trimmed)) {
+      const newOptions = [...costOptions, trimmed];
+      setCostOptions(newOptions);
+      localStorage.setItem('costOptions', JSON.stringify(newOptions));
+    }
+    const newCosts = [...costs];
+    newCosts[index].description = trimmed || '';
+    newCosts[index].isCustom = false;
+    setCosts(newCosts);
+  };
+
+  const applyCosts = () => {
+    let totalCosts = 0;
+    costs.forEach(c => {
+      const val = parseFloat(c.value);
+      if (!isNaN(val)) totalCosts += val;
+    });
+    
+    if (totalCosts === 0 || !carPrice) return;
     
     // Limpar tudo o que não seja número, ponto ou vírgula
     let clean = carPrice.replace(/[^0-9.,]/g, '');
@@ -58,9 +86,11 @@ export default function AdminPage() {
     
     const basePrice = parseInt(clean, 10);
     if (!isNaN(basePrice)) {
-      const newPrice = Math.round(basePrice * (1 + margin / 100));
+      const newPrice = basePrice + totalCosts;
       // Formata de volta para ficar estilo 28.890 €
       setCarPrice(new Intl.NumberFormat('de-DE').format(newPrice) + ' €');
+      // Limpar custos após somar para evitar dupla soma
+      setCosts([]);
     }
   };
   
@@ -484,10 +514,65 @@ export default function AdminPage() {
                 </div>
                 <div>
                   <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Preço de Venda</label>
-                  <div className="admin-flex-row">
-                    <input required value={carPrice} onChange={e=>setCarPrice(e.target.value)} type="text" style={{ flex: 1, padding: '10px', border: '1px solid #ccc', borderRadius: '6px' }} placeholder="Ex: 24.900 €" />
-                    <input type="number" value={marginPercent} onChange={e=>setMarginPercent(e.target.value)} placeholder="% Margem" style={{ width: '110px', padding: '10px', border: '1px solid #ccc', borderRadius: '6px', flex: 'none' }} />
-                    <button type="button" onClick={applyMargin} style={{ padding: '10px 15px', background: '#00d2ff', color: 'black', fontWeight: 'bold', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Aplicar</button>
+                  <input required value={carPrice} onChange={e=>setCarPrice(e.target.value)} type="text" style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '6px' }} placeholder="Ex: 24.900 €" />
+                  
+                  <div style={{ marginTop: '15px', padding: '15px', background: '#f9f9f9', borderRadius: '8px', border: '1px solid #eee' }}>
+                    <label style={{ display: 'block', marginBottom: '10px', fontWeight: 'bold', fontSize: '0.9rem' }}>Custos Adicionais (Somam ao Preço)</label>
+                    {costs.map((c, idx) => (
+                      <div key={idx} style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+                        {c.isCustom ? (
+                          <input 
+                            autoFocus
+                            placeholder="Nova descrição..." 
+                            style={{ flex: 1, padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
+                            onBlur={(e) => handleAddCustomCost(idx, e.target.value)}
+                            onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddCustomCost(idx, e.currentTarget.value); } }}
+                          />
+                        ) : (
+                          <select 
+                            value={c.description} 
+                            onChange={e => {
+                              if (e.target.value === 'novo') {
+                                const newCosts = [...costs];
+                                newCosts[idx].isCustom = true;
+                                setCosts(newCosts);
+                              } else {
+                                const newCosts = [...costs];
+                                newCosts[idx].description = e.target.value;
+                                setCosts(newCosts);
+                              }
+                            }}
+                            style={{ flex: 1, padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
+                          >
+                            <option value="">Selecione...</option>
+                            {costOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                            <option value="novo">+ Inserir novo custo</option>
+                          </select>
+                        )}
+                        <input 
+                          type="number" 
+                          placeholder="Valor (€)" 
+                          value={c.value} 
+                          onChange={e => {
+                            const newCosts = [...costs];
+                            newCosts[idx].value = e.target.value;
+                            setCosts(newCosts);
+                          }}
+                          style={{ width: '100px', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
+                        />
+                        <button type="button" onClick={() => {
+                          const newCosts = [...costs];
+                          newCosts.splice(idx, 1);
+                          setCosts(newCosts);
+                        }} style={{ padding: '8px', background: '#ffebee', color: '#c62828', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>X</button>
+                      </div>
+                    ))}
+                    <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                      <button type="button" onClick={() => setCosts([...costs, {description: '', value: ''}])} style={{ padding: '8px 15px', background: '#eee', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem' }}>+ Adicionar Custo</button>
+                      {costs.length > 0 && (
+                        <button type="button" onClick={applyCosts} style={{ padding: '8px 15px', background: '#00d2ff', color: 'black', fontWeight: 'bold', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem' }}>Somar ao Preço</button>
+                      )}
+                    </div>
                   </div>
                 </div>
                 <div>
