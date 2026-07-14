@@ -121,7 +121,7 @@ export default function ViaturaDetails() {
           <Link href="/" className="logo" style={{ textDecoration: 'none', color: 'white', fontSize: "1.5rem", fontWeight: "bold" }}>
             {settings?.header?.logoText.replace('car', '') || 'Consul'}<span style={{ color: "var(--accent-primary)" }}>car</span>
           </Link>
-          <button onClick={() => router.back()} className="btn btn-secondary" style={{ padding: '8px 20px', borderRadius: '8px', fontSize: '0.9rem' }}>← Voltar</button>
+          <Link href="/" className="btn btn-secondary" style={{ padding: '8px 20px', borderRadius: '8px', fontSize: '0.9rem', textDecoration: 'none', display: 'inline-block' }}>← Voltar</Link>
         </div>
       </header>
 
