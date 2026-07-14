@@ -240,8 +240,8 @@ export default function Home() {
                   <h1>{section.title1} <br /><span className="gradient-text">{section.title2}</span></h1>
                   <p>{section.description}</p>
                   <div className="hero-actions">
-                    <Link href="#pedido" className="btn btn-primary">{section.btnPrimary}</Link>
-                    <Link href="#sobre" className="btn btn-secondary">{section.btnSecondary}</Link>
+                    <Link href="#contact-1" className="btn btn-primary">{section.btnPrimary}</Link>
+                    <Link href="#about-1" className="btn btn-secondary">{section.btnSecondary}</Link>
                   </div>
                 </div>
                 {!section.bgImage && section.bgColor === 'transparent' && (
