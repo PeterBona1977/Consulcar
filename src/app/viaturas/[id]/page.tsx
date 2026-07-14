@@ -127,10 +127,9 @@ export default function ViaturaDetails() {
 
       <main style={{ paddingTop: '120px', paddingBottom: '100px', minHeight: '100vh' }}>
         <div className="container">
-          {/* Cabelhaçalho: Título e Preço (Mobile friendly) */}
+          {/* Cabelhaçalho: Título (Mobile friendly) */}
           <div style={{ marginBottom: '30px', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '20px' }}>
-            <h1 style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', marginBottom: '10px', lineHeight: 1.1, letterSpacing: '-0.5px' }}>{car.title}</h1>
-            <p style={{ color: 'var(--accent-primary)', fontSize: '2.5rem', fontWeight: 'bold' }}>{car.price}</p>
+            <h1 style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', margin: 0, lineHeight: 1.1, letterSpacing: '-0.5px' }}>{car.title}</h1>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '80px', alignItems: 'start', marginBottom: '60px' }}>
@@ -146,6 +145,45 @@ export default function ViaturaDetails() {
                     <img src={img} alt={`Thumb ${idx}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   </div>
                 ))}
+              </div>
+              
+              {/* Preço e Custos Adicionais */}
+              <div style={{ marginTop: '25px' }}>
+                {(!specs.costs || !Array.isArray(specs.costs) || specs.costs.length === 0) ? (
+                  <p style={{ color: 'var(--accent-primary)', fontSize: '2.2rem', fontWeight: 'bold', marginBottom: '15px' }}>{car.price}</p>
+                ) : (
+                  <div style={{ background: 'rgba(255,255,255,0.03)', padding: '20px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '1.1rem', color: 'rgba(255,255,255,0.9)' }}>
+                      <span>Valor da viatura</span>
+                      <span style={{ fontWeight: 'bold' }}>{car.price}</span>
+                    </div>
+                    {specs.costs.map((c: any, idx: number) => (
+                      <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '1.1rem', color: 'rgba(255,255,255,0.9)' }}>
+                        <span>{c.description}</span>
+                        <span style={{ fontWeight: 'bold' }}>{c.value} €</span>
+                      </div>
+                    ))}
+                    <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', margin: '15px 0' }}></div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'rgba(255,255,255,0.9)' }}>Preço Total</span>
+                      <span style={{ color: 'var(--accent-primary)', fontSize: '2.2rem', fontWeight: 'bold' }}>
+                        {(() => {
+                          let clean = (car.price || "0").replace(/[^0-9.,]/g, '');
+                          if (clean.match(/[.,]\d{2}$/)) clean = clean.slice(0, -3);
+                          clean = clean.replace(/[.,]/g, '');
+                          const basePrice = parseInt(clean, 10);
+                          let totalCosts = 0;
+                          specs.costs.forEach((c: any) => {
+                            const val = parseFloat(c.value);
+                            if (!isNaN(val)) totalCosts += val;
+                          });
+                          const finalTotal = (isNaN(basePrice) ? 0 : basePrice) + totalCosts;
+                          return new Intl.NumberFormat('de-DE').format(finalTotal) + ' €';
+                        })()}
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 

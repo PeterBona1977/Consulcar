@@ -66,33 +66,7 @@ export default function AdminPage() {
     setCosts(newCosts);
   };
 
-  const applyCosts = () => {
-    let totalCosts = 0;
-    costs.forEach(c => {
-      const val = parseFloat(c.value);
-      if (!isNaN(val)) totalCosts += val;
-    });
-    
-    if (totalCosts === 0 || !carPrice) return;
-    
-    // Limpar tudo o que não seja número, ponto ou vírgula
-    let clean = carPrice.replace(/[^0-9.,]/g, '');
-    // Se terminar em cêntimos (ex: ,50 ou .00), removemos os cêntimos
-    if (clean.match(/[.,]\d{2}$/)) {
-        clean = clean.slice(0, -3);
-    }
-    // Agora removemos todos os pontos e vírgulas que restam (que são separadores de milhares)
-    clean = clean.replace(/[.,]/g, '');
-    
-    const basePrice = parseInt(clean, 10);
-    if (!isNaN(basePrice)) {
-      const newPrice = basePrice + totalCosts;
-      // Formata de volta para ficar estilo 28.890 €
-      setCarPrice(new Intl.NumberFormat('de-DE').format(newPrice) + ' €');
-      // Limpar custos após somar para evitar dupla soma
-      setCosts([]);
-    }
-  };
+
   
   // Dinâmicos
   const [specs, setSpecs] = useState<{key: string, value: string}[]>([{key: '', value: ''}]);
@@ -240,13 +214,17 @@ export default function AdminPage() {
     // Parse specs
     const s = v.specs || {};
     const loadedSpecs = Object.keys(s)
-      .filter(k => k !== 'equipment')
+      .filter(k => k !== 'equipment' && k !== 'costs')
       .map(k => ({ key: k, value: s[k] }));
     setSpecs(loadedSpecs.length > 0 ? loadedSpecs : [{key: '', value: ''}]);
     
     // Parse equipment
     const eq = s.equipment || [];
     setEquipment(eq.length > 0 ? eq : ['']);
+
+    // Parse costs
+    const c = s.costs || [];
+    setCosts(c);
     
     // Images
     let imgs: string[] = [];
@@ -380,6 +358,7 @@ export default function AdminPage() {
       .map(eq => translateTerm(eq, 'equipment'));
       
     specsObj.equipment = translatedEq;
+    specsObj.costs = costs;
 
     const vehicleData = {
       title: carTitle,
@@ -569,9 +548,6 @@ export default function AdminPage() {
                     ))}
                     <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
                       <button type="button" onClick={() => setCosts([...costs, {description: '', value: ''}])} style={{ padding: '8px 15px', background: '#eee', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem' }}>+ Adicionar Custo</button>
-                      {costs.length > 0 && (
-                        <button type="button" onClick={applyCosts} style={{ padding: '8px 15px', background: '#00d2ff', color: 'black', fontWeight: 'bold', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem' }}>Somar ao Preço</button>
-                      )}
                     </div>
                   </div>
                 </div>
