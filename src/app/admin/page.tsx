@@ -43,6 +43,8 @@ export default function AdminPage() {
   const [carOriginalUrl, setCarOriginalUrl] = useState("");
   const [costs, setCosts] = useState<{description: string, value: string, isCustom?: boolean}[]>([]);
   const [costOptions, setCostOptions] = useState<string[]>(['Transporte', 'Legalização']);
+  const [insertMode, setInsertMode] = useState<"link" | "manual">("link");
+  const [uploadingImages, setUploadingImages] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem('costOptions');
@@ -210,6 +212,7 @@ export default function AdminPage() {
     setCarImage(v.image || "");
     setCarDesc(v.description || "");
     setCarOriginalUrl(v.original_url || "");
+    setInsertMode(v.original_url ? "link" : "manual");
     
     // Parse specs
     const s = v.specs || {};
@@ -339,6 +342,41 @@ export default function AdminPage() {
       setStatus(`Erro: ${error.message}`);
     } finally {
       setIsScraping(false);
+    }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    setUploadingImages(true);
+    setStatus("A carregar imagens...");
+    
+    const formData = new FormData();
+    Array.from(e.target.files).forEach(file => {
+      formData.append('images', file);
+    });
+
+    try {
+      const res = await fetch('/api/admin/upload', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session?.access_token}`
+        },
+        body: formData
+      });
+      const data = await res.json();
+      
+      if (!res.ok) throw new Error(data.error || 'Erro ao carregar imagens');
+      
+      setCarImages(prev => [...prev, ...data.urls]);
+      if (data.urls.length > 0 && !carImage) {
+        setCarImage(data.urls[0]);
+      }
+      setStatus("Imagens carregadas com sucesso!");
+      setTimeout(() => setStatus(""), 3000);
+    } catch (err: any) {
+      setStatus(`Erro ao carregar imagens: ${err.message}`);
+    } finally {
+      setUploadingImages(false);
     }
   };
 
@@ -476,15 +514,27 @@ export default function AdminPage() {
               <h2 style={{ marginBottom: '20px' }}>{editingId ? 'Editar Viatura' : 'Publicar Nova Viatura'}</h2>
               {status && <div style={{ padding: '15px', background: '#e0f7fa', color: '#006064', marginBottom: '20px', borderRadius: '8px' }}>{status}</div>}
               
-              <div style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>URL do Anúncio Original</label>
-                <div className="admin-flex-row">
-                  <input value={carOriginalUrl} onChange={e=>setCarOriginalUrl(e.target.value)} type="text" style={{ flex: 1, padding: '10px', border: '1px solid #ccc', borderRadius: '6px' }} placeholder="https://mobile.de/..." />
-                  <button type="button" onClick={handleFetchDataFromUrl} disabled={isScraping} style={{ padding: '10px 15px', background: '#00d2ff', color: 'black', fontWeight: 'bold', border: 'none', borderRadius: '6px', cursor: isScraping ? 'not-allowed' : 'pointer' }}>
-                    {isScraping ? 'A extrair...' : 'Extrair Dados'}
-                  </button>
-                </div>
+              <div style={{ marginBottom: '20px', display: 'flex', gap: '20px', alignItems: 'center', background: '#fff', padding: '15px', borderRadius: '8px', border: '1px solid #ddd' }}>
+                <label style={{ fontWeight: 'bold' }}>Modo de Inserção:</label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer' }}>
+                  <input type="radio" name="insertMode" checked={insertMode === 'link'} onChange={() => setInsertMode('link')} /> Por Link (Ex: Mobile.de)
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer' }}>
+                  <input type="radio" name="insertMode" checked={insertMode === 'manual'} onChange={() => setInsertMode('manual')} /> Manual (Carregar Imagens)
+                </label>
               </div>
+
+              {insertMode === 'link' ? (
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>URL do Anúncio Original</label>
+                  <div className="admin-flex-row">
+                    <input value={carOriginalUrl} onChange={e=>setCarOriginalUrl(e.target.value)} type="text" style={{ flex: 1, padding: '10px', border: '1px solid #ccc', borderRadius: '6px' }} placeholder="https://mobile.de/..." />
+                    <button type="button" onClick={handleFetchDataFromUrl} disabled={isScraping} style={{ padding: '10px 15px', background: '#00d2ff', color: 'black', fontWeight: 'bold', border: 'none', borderRadius: '6px', cursor: isScraping ? 'not-allowed' : 'pointer' }}>
+                      {isScraping ? 'A extrair...' : 'Extrair Dados'}
+                    </button>
+                  </div>
+                </div>
+              ) : null}
 
               <div className="admin-grid">
                 <div>
@@ -552,8 +602,41 @@ export default function AdminPage() {
                   </div>
                 </div>
                 <div>
-                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Imagem URL: {carImages.length > 0 && <span style={{color:'green', fontSize:'0.8em'}}>({carImages.length} fotos extraídas da galeria)</span>}</label>
-                  <input value={carImage} onChange={e=>setCarImage(e.target.value)} type="text" style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '6px' }} placeholder="https://..." />
+                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Imagem Principal URL: {carImages.length > 0 && <span style={{color:'green', fontSize:'0.8em'}}>({carImages.length} fotos na galeria)</span>}</label>
+                  <input value={carImage} onChange={e=>setCarImage(e.target.value)} type="text" style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '6px', marginBottom: '10px' }} placeholder="https://..." />
+                  
+                  {insertMode === 'manual' && (
+                    <div style={{ padding: '20px', border: '2px dashed #ccc', borderRadius: '8px', textAlign: 'center', background: '#fafafa' }}>
+                      <p style={{ margin: '0 0 10px 0', color: '#666' }}>Arrastar fotos ou clicar para carregar</p>
+                      <input 
+                        type="file" 
+                        multiple 
+                        accept="image/*" 
+                        onChange={handleImageUpload}
+                        disabled={uploadingImages}
+                        style={{ display: 'block', margin: '0 auto' }}
+                      />
+                      {uploadingImages && <p style={{ color: '#00d2ff', fontWeight: 'bold', marginTop: '10px' }}>A enviar imagens...</p>}
+                    </div>
+                  )}
+
+                  {carImages.length > 0 && insertMode === 'manual' && (
+                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '15px' }}>
+                       {carImages.map((img, i) => (
+                         <div key={i} style={{ position: 'relative', width: '80px', height: '60px' }}>
+                           <img src={img} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '4px', border: carImage === img ? '2px solid #00d2ff' : '1px solid #ddd' }} />
+                           <button type="button" onClick={() => setCarImage(img)} style={{ position: 'absolute', bottom: '0', left: '0', right: '0', background: 'rgba(0,0,0,0.5)', color: 'white', border: 'none', fontSize: '10px', padding: '2px', cursor: 'pointer', borderBottomLeftRadius: '4px', borderBottomRightRadius: '4px' }}>Capa</button>
+                           <button type="button" onClick={() => {
+                             const newImgs = [...carImages];
+                             newImgs.splice(i, 1);
+                             setCarImages(newImgs);
+                             if (carImage === img && newImgs.length > 0) setCarImage(newImgs[0]);
+                             else if (carImage === img) setCarImage('');
+                           }} style={{ position: 'absolute', top: '-5px', right: '-5px', background: 'red', color: 'white', border: 'none', borderRadius: '50%', width: '20px', height: '20px', cursor: 'pointer', fontSize: '10px' }}>X</button>
+                         </div>
+                       ))}
+                     </div>
+                  )}
                 </div>
               </div>
 
