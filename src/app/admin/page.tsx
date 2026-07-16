@@ -22,6 +22,7 @@ export default function AdminPage() {
   const router = useRouter();
 
   const [userRole, setUserRole] = useState<string>("sales");
+  const [roleError, setRoleError] = useState<string | null>(null);
   const [admins, setAdmins] = useState<any[]>([]);
   const [newAdminEmail, setNewAdminEmail] = useState("");
   const [newAdminPassword, setNewAdminPassword] = useState("");
@@ -90,7 +91,17 @@ export default function AdminPage() {
     if (!session) {
       router.push('/admin/login');
     } else {
-      const { data: roleData } = await supabase.from('user_roles').select('role').eq('user_id', session.user.id).single();
+      const { data: roleData, error: rErr } = await supabase.from('user_roles').select('role').eq('user_id', session.user.id).single();
+      
+      if (rErr) {
+        console.error("Role fetch error:", rErr);
+        if (rErr.code === '42P01') {
+          setRoleError("A tabela user_roles não existe. Por favor execute o script update_rbac.sql no Supabase!");
+        } else {
+          setRoleError("Não foi possível carregar a tua função (role) de acesso. Tens permissões apenas de Vendas.");
+        }
+      }
+      
       const role = roleData?.role || 'sales';
       setUserRole(role);
       
@@ -483,6 +494,12 @@ export default function AdminPage() {
       `}</style>
       <div style={{ maxWidth: '1000px', margin: '0 auto', background: 'white', borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.1)', overflow: 'hidden' }}>
         
+        {roleError && (
+          <div style={{ padding: '15px', background: '#ffebee', color: '#c62828', fontWeight: 'bold', textAlign: 'center', borderBottom: '1px solid #ffcdd2' }}>
+            ⚠️ {roleError}
+          </div>
+        )}
+
         <div className="admin-nav-container">
           <div className="admin-hamburger" onClick={() => setIsAdminMenuOpen(!isAdminMenuOpen)}>
             <span>Menu de Administração ({activeTab.charAt(0).toUpperCase() + activeTab.slice(1)})</span>
