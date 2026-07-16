@@ -108,7 +108,7 @@ export default function AdminPage() {
       setSession(session);
       setAuthLoading(false);
       fetchDictionary();
-      fetchPublishedVehicles();
+      fetchPublishedVehicles(role, session.user.id);
       if (role !== 'sales') fetchAdmins(session.access_token);
       fetchLeads(session.access_token);
     }
@@ -205,8 +205,12 @@ export default function AdminPage() {
     if (data) setDictionary(data);
   };
 
-  const fetchPublishedVehicles = async () => {
-    const { data } = await supabase.from('vehicles').select('*').order('created_at', { ascending: false });
+  const fetchPublishedVehicles = async (role: string = userRole, userId: string = session?.user?.id) => {
+    let query = supabase.from('vehicles').select('*').order('created_at', { ascending: false });
+    if (role === 'sales' && userId) {
+      query = query.eq('user_id', userId);
+    }
+    const { data } = await query;
     if (data) setPublishedVehicles(data);
   };
 
