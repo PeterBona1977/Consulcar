@@ -882,10 +882,10 @@ export default function AdminPage() {
               
               <p style={{ marginBottom: '30px', color: '#666' }}>Adicione ou remova utilizadores com acesso a este painel.</p>
               
-              <form onSubmit={handleCreateAdmin} style={{ display: 'flex', gap: '15px', marginBottom: '40px', background: '#f9f9f9', padding: '20px', borderRadius: '8px', flexWrap: 'wrap' }}>
-                <input required type="email" value={newAdminEmail} onChange={e=>setNewAdminEmail(e.target.value)} placeholder="Email do novo admin" style={{ flex: 1, minWidth: '200px', padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }} />
-                <input required type="password" value={newAdminPassword} onChange={e=>setNewAdminPassword(e.target.value)} placeholder="Password" style={{ flex: 1, minWidth: '200px', padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }} />
-                <select value={newAdminRole} onChange={e=>setNewAdminRole(e.target.value)} style={{ flex: 1, minWidth: '150px', padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }}>
+              <form autoComplete="off" onSubmit={handleCreateAdmin} style={{ display: 'flex', gap: '15px', marginBottom: '40px', background: '#f9f9f9', padding: '20px', borderRadius: '8px', flexWrap: 'wrap' }}>
+                <input required type="email" name="new_user_email" autoComplete="new-password" value={newAdminEmail} onChange={e=>setNewAdminEmail(e.target.value)} placeholder="ex: utilizador@email.com" style={{ flex: 1, minWidth: '200px', padding: '10px', borderRadius: '6px', border: '1px solid #ccc', backgroundColor: '#fff', color: '#111' }} />
+                <input required type="password" name="new_user_password" autoComplete="new-password" value={newAdminPassword} onChange={e=>setNewAdminPassword(e.target.value)} placeholder="Introduza uma palavra-passe" style={{ flex: 1, minWidth: '200px', padding: '10px', borderRadius: '6px', border: '1px solid #ccc', backgroundColor: '#fff', color: '#111' }} />
+                <select value={newAdminRole} onChange={e=>setNewAdminRole(e.target.value)} style={{ flex: 1, minWidth: '150px', padding: '10px', borderRadius: '6px', border: '1px solid #ccc', backgroundColor: '#fff', color: '#111' }}>
                   <option value="admin">Administrador Geral</option>
                   <option value="sales">Comercial (Vendas)</option>
                 </select>
