@@ -266,7 +266,7 @@ export default function Home() {
                   <div className="features-grid carousel">
                     {vehicles.slice(0, visibleCount).map((car) => (
                       <div key={car.id} className="feature-card" style={{ padding: "0", overflow: "hidden", background: section.bgImage ? "rgba(0,0,0,0.8)" : "var(--surface-light)" }}>
-                        <img src={car.image} alt={car.title} style={{ width: "100%", height: "220px", objectFit: "cover", borderBottom: "1px solid var(--border-color)" }} />
+                        <img src={car.image || 'https://via.placeholder.com/800x600.png?text=Sem+Imagem'} alt={car.title} style={{ width: "100%", height: "220px", objectFit: "cover", borderBottom: "1px solid var(--border-color)" }} />
                         <div style={{ padding: "20px" }}>
                           <h3 style={{ fontSize: "1.2rem", marginBottom: "8px", lineHeight: "1.3" }}>{car.title}</h3>
                           <p style={{ color: "var(--accent-primary)", fontWeight: "bold", fontSize: "1.3rem", marginBottom: "16px" }}>{car.price}</p>

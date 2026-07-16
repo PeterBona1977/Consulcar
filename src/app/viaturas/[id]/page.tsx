@@ -32,7 +32,7 @@ export default function ViaturaDetails() {
       const { data } = await supabase.from('vehicles').select('*').eq('id', carId).single();
       if (data) {
         setCar(data);
-        setActiveImage(data.image);
+        setActiveImage(data.image || 'https://via.placeholder.com/800x600.png?text=Sem+Imagem');
       }
       
       const { data: cms } = await supabase.from('site_settings').select('data').eq('id', 1).single();
@@ -101,6 +101,7 @@ export default function ViaturaDetails() {
   
   // Se a array ficou vazia mas a car.image principal existe, usa só essa
   const images = imagesArray.length > 0 ? Array.from(new Set([car.image, ...imagesArray])).filter(Boolean) : [car.image].filter(Boolean);
+  if (images.length === 0) images.push('https://via.placeholder.com/800x600.png?text=Sem+Imagem');
   const specs = car.specs || {};
 
   return (
