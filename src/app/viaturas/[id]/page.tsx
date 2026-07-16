@@ -58,6 +58,7 @@ export default function ViaturaDetails() {
           contact_name: contactName,
           email: email,
           phone: phone,
+          vehicle_id: car.id,
           brand: car.title,
           model: `ID: ${car.id}`,
           extras: `URL: ${window.location.href}\nPreço: ${car.price}`

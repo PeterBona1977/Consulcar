@@ -21,10 +21,11 @@ export default function AdminPage() {
   const [authLoading, setAuthLoading] = useState(true);
   const router = useRouter();
 
-  // Gestão de Admins
+  const [userRole, setUserRole] = useState<string>("sales");
   const [admins, setAdmins] = useState<any[]>([]);
   const [newAdminEmail, setNewAdminEmail] = useState("");
   const [newAdminPassword, setNewAdminPassword] = useState("");
+  const [newAdminRole, setNewAdminRole] = useState("admin");
   
   // Leads / CRM
   const [leads, setLeads] = useState<any[]>([]);
@@ -89,11 +90,15 @@ export default function AdminPage() {
     if (!session) {
       router.push('/admin/login');
     } else {
+      const { data: roleData } = await supabase.from('user_roles').select('role').eq('user_id', session.user.id).single();
+      const role = roleData?.role || 'sales';
+      setUserRole(role);
+      
       setSession(session);
       setAuthLoading(false);
       fetchDictionary();
       fetchPublishedVehicles();
-      fetchAdmins(session.access_token);
+      if (role !== 'sales') fetchAdmins(session.access_token);
       fetchLeads(session.access_token);
     }
   };
@@ -153,7 +158,7 @@ export default function AdminPage() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${session.access_token}`
         },
-        body: JSON.stringify({ email: newAdminEmail, password: newAdminPassword })
+        body: JSON.stringify({ email: newAdminEmail, password: newAdminPassword, role: newAdminRole })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
@@ -490,15 +495,19 @@ export default function AdminPage() {
             <button onClick={() => { setActiveTab('gestao'); setIsAdminMenuOpen(false); }} style={{ background: activeTab === 'gestao' ? '#222' : '#111' }}>
               📋 Viaturas
             </button>
-            <button onClick={() => { setActiveTab('dicionario'); setIsAdminMenuOpen(false); }} style={{ background: activeTab === 'dicionario' ? '#222' : '#111' }}>
-              🧠 Dicionário
-            </button>
+            {userRole !== 'sales' && (
+              <button onClick={() => { setActiveTab('dicionario'); setIsAdminMenuOpen(false); }} style={{ background: activeTab === 'dicionario' ? '#222' : '#111' }}>
+                🧠 Dicionário
+              </button>
+            )}
             <button onClick={() => { setActiveTab('leads'); setIsAdminMenuOpen(false); }} style={{ background: activeTab === 'leads' ? '#222' : '#111' }}>
               📩 Mensagens
             </button>
-            <button onClick={() => { setActiveTab('admins'); setIsAdminMenuOpen(false); }} style={{ background: activeTab === 'admins' ? '#222' : '#111' }}>
-              👥 Admins
-            </button>
+            {userRole !== 'sales' && (
+              <button onClick={() => { setActiveTab('admins'); setIsAdminMenuOpen(false); }} style={{ background: activeTab === 'admins' ? '#222' : '#111' }}>
+                👥 Admins
+              </button>
+            )}
             <div className="admin-nav-actions" style={{ padding: '15px', display: 'flex', gap: '15px', alignItems: 'center' }}>
               <Link href="/" style={{ color: '#00d2ff', textDecoration: 'none', fontSize: '0.9rem' }}>Site Principal</Link>
               <button onClick={handleLogout} style={{ background: 'transparent', color: '#ef5350', border: '1px solid #ef5350', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.9rem', flex: 'none' }}>Sair</button>
@@ -855,13 +864,18 @@ export default function AdminPage() {
               <form onSubmit={handleCreateAdmin} style={{ display: 'flex', gap: '15px', marginBottom: '40px', background: '#f9f9f9', padding: '20px', borderRadius: '8px', flexWrap: 'wrap' }}>
                 <input required type="email" value={newAdminEmail} onChange={e=>setNewAdminEmail(e.target.value)} placeholder="Email do novo admin" style={{ flex: 1, minWidth: '200px', padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }} />
                 <input required type="password" value={newAdminPassword} onChange={e=>setNewAdminPassword(e.target.value)} placeholder="Password" style={{ flex: 1, minWidth: '200px', padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }} />
-                <button type="submit" style={{ padding: '10px 20px', background: '#000', color: 'white', fontWeight: 'bold', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Criar Administrador</button>
+                <select value={newAdminRole} onChange={e=>setNewAdminRole(e.target.value)} style={{ flex: 1, minWidth: '150px', padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }}>
+                  <option value="admin">Administrador Geral</option>
+                  <option value="sales">Comercial (Vendas)</option>
+                </select>
+                <button type="submit" style={{ padding: '10px 20px', background: '#000', color: 'white', fontWeight: 'bold', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Criar Utilizador</button>
               </form>
 
               <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                 <thead>
                   <tr style={{ background: '#eee' }}>
                     <th style={{ padding: '12px' }}>Email</th>
+                    <th style={{ padding: '12px' }}>Função</th>
                     <th style={{ padding: '12px' }}>Criado em</th>
                     <th style={{ padding: '12px', width: '100px' }}>Ações</th>
                   </tr>
@@ -870,6 +884,7 @@ export default function AdminPage() {
                   {admins.map(a => (
                     <tr key={a.id} style={{ borderBottom: '1px solid #eee' }}>
                       <td style={{ padding: '12px', fontWeight: 'bold' }}>{a.email} {session?.user?.email === a.email && <span style={{fontSize: '0.8rem', color: '#888', fontWeight: 'normal'}}>(Tu)</span>}</td>
+                      <td style={{ padding: '12px' }}>{a.role === 'super_admin' ? 'Super Admin' : a.role === 'sales' ? 'Comercial' : 'Admin'}</td>
                       <td style={{ padding: '12px' }}>{new Date(a.created_at).toLocaleDateString('pt-PT')}</td>
                       <td style={{ padding: '12px' }}>
                         {session?.user?.email !== a.email && (
