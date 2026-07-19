@@ -8,6 +8,7 @@ const supabase = createClient(
 
 // We need to disable static generation for this dynamic route if we don't know IDs ahead of time
 export const revalidate = 60; // Revalidate every 60 seconds
+export const runtime = 'edge';
 
 export default async function VendorProfilePage({ params }: { params: { id: string } }) {
   const { id } = params;

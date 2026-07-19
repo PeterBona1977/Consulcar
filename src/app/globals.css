@@ -34,44 +34,44 @@ body {
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 0 15px; /* Tighter padding for app feel */
   width: 100%;
 }
 
-@media (max-width: 768px) {
+@media (min-width: 768px) {
   .container {
-    padding: 0 15px; /* Tighter padding for app feel */
+    padding: 0 20px;
   }
 }
 
 /* Typography */
 h1 {
-  font-size: clamp(2.2rem, 5vw, 4rem);
+  font-size: 2.5rem;
   line-height: 1.1;
   margin-bottom: 20px;
   letter-spacing: -0.03em;
 }
 
 h2 {
-  font-size: clamp(1.8rem, 4vw, 3rem);
+  font-size: 2rem;
   margin-bottom: 20px;
   letter-spacing: -0.02em;
 }
 
-@media (max-width: 768px) {
-  h1 { font-size: 2.5rem; }
-  h2 { font-size: 2rem; }
+@media (min-width: 768px) {
+  h1 { font-size: clamp(2.2rem, 5vw, 4rem); }
+  h2 { font-size: clamp(1.8rem, 4vw, 3rem); }
 }
 
 p {
-  font-size: 1.1rem;
+  font-size: 1rem;
   line-height: 1.6;
   color: var(--text-secondary);
   margin-bottom: 20px;
 }
 
-@media (max-width: 768px) {
-  p { font-size: 1rem; }
+@media (min-width: 768px) {
+  p { font-size: 1.1rem; }
 }
 
 .gradient-text {
@@ -107,15 +107,19 @@ p {
 }
 
 /* Mobile Navbar (App-like Hamburger) */
-@media (max-width: 768px) {
+.nav-content nav.desktop-nav {
+  display: none;
+}
+
+@media (min-width: 768px) {
   .nav-content nav.desktop-nav {
-    display: none;
+    display: block;
   }
 }
 
 /* HAMBURGER BUTTON */
 .hamburger-btn {
-  display: none;
+  display: flex;
   flex-direction: column;
   justify-content: space-between;
   width: 30px;
@@ -136,9 +140,9 @@ p {
 .hamburger-line.open:nth-child(2) { opacity: 0; }
 .hamburger-line.open:nth-child(3) { transform: translateY(-9px) rotate(-45deg); }
 
-@media (max-width: 768px) {
+@media (min-width: 768px) {
   .hamburger-btn {
-    display: flex;
+    display: none;
   }
 }
 
@@ -405,37 +409,45 @@ nav a:hover {
 
 /* HORIZONTAL SCROLL FOR MOBILE (App Carousel Feel) */
 .features-grid.carousel {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  gap: 15px;
+  padding-bottom: 20px;
+  /* Hide scrollbar */
+  scrollbar-width: none; 
+  margin: 0 -15px;
+  padding: 0 15px 20px 15px;
 }
 
-@media (max-width: 1024px) {
+.features-grid.carousel::-webkit-scrollbar {
+  display: none;
+}
+
+.features-grid.carousel > .feature-card {
+  min-width: 85vw;
+  scroll-snap-align: center;
+  flex-shrink: 0;
+}
+
+@media (min-width: 768px) {
   .features-grid.carousel {
+    display: grid;
     grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 768px) {
-  .features-grid.carousel {
-    display: flex;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    scroll-behavior: smooth;
-    -webkit-overflow-scrolling: touch;
-    gap: 15px;
-    padding-bottom: 20px;
-    /* Hide scrollbar */
-    scrollbar-width: none; 
-    margin: 0 -15px;
-    padding: 0 15px 20px 15px;
-  }
-  .features-grid.carousel::-webkit-scrollbar {
-    display: none;
+    overflow-x: visible;
+    margin: 0;
+    padding: 0;
   }
   .features-grid.carousel > .feature-card {
-    min-width: 85vw;
-    scroll-snap-align: center;
-    flex-shrink: 0;
+    min-width: auto;
+  }
+}
+
+@media (min-width: 1024px) {
+  .features-grid.carousel {
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 
@@ -490,8 +502,15 @@ nav a:hover {
 
 .form-group-row {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 24px;
+    grid-template-columns: 1fr;
+    gap: 0;
+}
+
+@media (min-width: 768px) {
+    .form-group-row {
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+    }
 }
 
 .form-group {
@@ -729,29 +748,47 @@ footer {
 }
 
 /* Responsive */
-@media (max-width: 768px) {
-    .form-group-row {
-        grid-template-columns: 1fr;
-        gap: 0;
-    }
-    
+@media (min-width: 768px) {
     .hero h1 {
-        font-size: 2.5rem;
+        font-size: clamp(2.2rem, 5vw, 4rem);
     }
     
     .glassmorphism {
-        padding: 30px 20px;
+        padding: 50px;
     }
     
     .hero-actions {
-        flex-direction: column;
+        flex-direction: row;
     }
     
     .footer-content {
-        flex-direction: column;
-        gap: 16px;
-        text-align: center;
+        flex-direction: row;
+        text-align: left;
     }
+}
+
+.hero h1 {
+    font-size: 2.5rem;
+}
+
+.glassmorphism {
+    padding: 30px 20px;
+}
+
+.hero-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.footer-content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    text-align: center;
+    justify-content: space-between;
+    align-items: center;
+}
     
     /* Mobile Fixed CTA for Car Details */
     .mobile-fixed-cta {

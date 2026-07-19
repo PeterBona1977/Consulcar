@@ -604,29 +604,36 @@ export default function AdminPage() {
         }
         
         .admin-nav-container { border-bottom: 1px solid #ddd; background: #111; }
-        .admin-hamburger { display: none; padding: 15px 20px; background: #111; color: white; cursor: pointer; font-weight: bold; justify-content: space-between; align-items: center; }
-        .admin-nav { display: flex; flex-wrap: wrap; }
-        .admin-nav button { flex: 1; padding: 15px; color: white; border: none; cursor: pointer; font-size: 1rem; font-weight: bold; }
         
-        .admin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; }
-        .admin-flex-row { display: flex; gap: 10px; }
+        /* Mobile Default Styles */
+        .admin-hamburger { display: flex; padding: 15px 20px; background: #111; color: white; cursor: pointer; font-weight: bold; justify-content: space-between; align-items: center; }
+        .admin-nav { display: none; flex-direction: column; width: 100%; background: #111; }
+        .admin-nav.open { display: flex; }
+        .admin-nav button { text-align: left; padding: 15px 20px; border-bottom: 1px solid #222; color: white; border: none; cursor: pointer; font-size: 1rem; font-weight: bold; background: transparent; }
+        .admin-nav .admin-nav-actions { width: 100%; justify-content: space-between; padding: 15px 20px; display: flex; }
+        .admin-content-pad { padding: 20px 15px !important; }
         
-        .admin-sections-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
-        .admin-spec-row { display: flex; gap: 10px; margin-bottom: 10px; }
+        .admin-grid { display: grid; grid-template-columns: 1fr; gap: 20px; margin-bottom: 30px; }
+        .admin-flex-row { display: flex; flex-direction: column; gap: 10px; }
+        .admin-flex-row button { width: 100%; }
         
-        @media (max-width: 768px) {
-          .admin-hamburger { display: flex; }
-          .admin-nav { display: none; flex-direction: column; width: 100%; }
-          .admin-nav.open { display: flex; }
-          .admin-nav button { text-align: left; padding: 15px 20px; border-bottom: 1px solid #222; }
-          .admin-nav .admin-nav-actions { width: 100%; justify-content: space-between; padding: 15px 20px; }
-          .admin-content-pad { padding: 20px 15px !important; }
+        .admin-sections-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
+        .admin-spec-row { display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; }
+        
+        /* Desktop Override */
+        @media (min-width: 768px) {
+          .admin-hamburger { display: none; }
+          .admin-nav { display: flex; flex-direction: row; width: auto; flex-wrap: wrap; }
+          .admin-nav button { flex: 1; padding: 15px; text-align: center; border-bottom: none; }
+          .admin-nav .admin-nav-actions { width: auto; justify-content: flex-start; padding: 15px; }
+          .admin-content-pad { padding: 40px !important; }
           
-          .admin-grid { grid-template-columns: 1fr; }
-          .admin-sections-grid { grid-template-columns: 1fr; gap: 20px; }
-          .admin-spec-row { flex-direction: column; }
-          .admin-flex-row { flex-direction: column; }
-          .admin-flex-row button { width: 100%; }
+          .admin-grid { grid-template-columns: 1fr 1fr; }
+          .admin-flex-row { flex-direction: row; }
+          .admin-flex-row button { width: auto; }
+          
+          .admin-sections-grid { grid-template-columns: 1fr 1fr; gap: 40px; }
+          .admin-spec-row { flex-direction: row; }
         }
       `}</style>
       <div style={{ maxWidth: '1000px', margin: '0 auto', background: 'white', borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.1)', overflow: 'hidden' }}>

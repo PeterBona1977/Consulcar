@@ -48,8 +48,12 @@ export default function UpdatePasswordPage() {
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f5f5f5', color: '#333' }}>
       <style>{`
         input { color: #000 !important; background-color: #fff !important; }
+        .login-card { width: 100%; max-width: 400px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); margin: 20px; }
+        @media (min-width: 768px) {
+          .login-card { padding: 40px; margin: 0; }
+        }
       `}</style>
-      <div style={{ width: '100%', maxWidth: '400px', background: 'white', padding: '40px', borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}>
+      <div className="login-card">
         <div style={{ textAlign: 'center', marginBottom: '30px' }}>
           <h1 style={{ fontSize: '1.5rem', marginBottom: '10px' }}>Definir Nova Password</h1>
           <p style={{ color: '#666' }}>Painel de Administração</p>
