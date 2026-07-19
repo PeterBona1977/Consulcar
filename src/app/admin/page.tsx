@@ -1211,11 +1211,11 @@ export default function AdminPage() {
                   <div style={{ marginBottom: '20px' }}>
                     <label style={{ display: 'block', marginBottom: '10px', fontWeight: 'bold' }}>Imagem de Perfil</label>
                     <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                      <label style={{ flex: 1, minWidth: '150px', textAlign: 'center', background: '#f5f5f5', padding: '12px', borderRadius: '6px', cursor: 'pointer', border: '1px solid #ccc', fontWeight: 'bold' }}>
+                      <label style={{ flex: 1, textAlign: 'center', background: '#f5f5f5', padding: '12px', borderRadius: '6px', cursor: 'pointer', border: '1px solid #ccc', fontWeight: 'bold' }}>
                         📷 Tirar Foto
                         <input type="file" accept="image/*" capture="user" onChange={handleProfileImageUpload} style={{ display: 'none' }} />
                       </label>
-                      <label style={{ flex: 1, minWidth: '150px', textAlign: 'center', background: '#f5f5f5', padding: '12px', borderRadius: '6px', cursor: 'pointer', border: '1px solid #ccc', fontWeight: 'bold' }}>
+                      <label style={{ flex: 1, textAlign: 'center', background: '#f5f5f5', padding: '12px', borderRadius: '6px', cursor: 'pointer', border: '1px solid #ccc', fontWeight: 'bold' }}>
                         📂 Escolher Ficheiro
                         <input type="file" accept="image/*" onChange={handleProfileImageUpload} style={{ display: 'none' }} />
                       </label>
@@ -1225,11 +1225,11 @@ export default function AdminPage() {
                   <div style={{ marginBottom: '20px' }}>
                     <label style={{ display: 'block', marginBottom: '10px', fontWeight: 'bold' }}>Imagem de Capa</label>
                     <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                      <label style={{ flex: 1, minWidth: '150px', textAlign: 'center', background: '#f5f5f5', padding: '12px', borderRadius: '6px', cursor: 'pointer', border: '1px solid #ccc', fontWeight: 'bold' }}>
+                      <label style={{ flex: 1, textAlign: 'center', background: '#f5f5f5', padding: '12px', borderRadius: '6px', cursor: 'pointer', border: '1px solid #ccc', fontWeight: 'bold' }}>
                         📸 Tirar Foto
                         <input type="file" accept="image/*" capture="environment" onChange={handleProfileCoverUpload} style={{ display: 'none' }} />
                       </label>
-                      <label style={{ flex: 1, minWidth: '150px', textAlign: 'center', background: '#f5f5f5', padding: '12px', borderRadius: '6px', cursor: 'pointer', border: '1px solid #ccc', fontWeight: 'bold' }}>
+                      <label style={{ flex: 1, textAlign: 'center', background: '#f5f5f5', padding: '12px', borderRadius: '6px', cursor: 'pointer', border: '1px solid #ccc', fontWeight: 'bold' }}>
                         📂 Escolher Ficheiro
                         <input type="file" accept="image/*" onChange={handleProfileCoverUpload} style={{ display: 'none' }} />
                       </label>
