@@ -769,8 +769,21 @@ export default function AdminPage() {
                         }} style={{ padding: '8px', background: '#ffebee', color: '#c62828', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>X</button>
                       </div>
                     ))}
-                    <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '15px', paddingTop: '15px', borderTop: '1px solid #ddd' }}>
                       <button type="button" onClick={() => setCosts([...costs, {description: '', value: ''}])} style={{ padding: '8px 15px', background: '#eee', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem' }}>+ Adicionar Custo</button>
+                      <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#111' }}>
+                        Total:{' '}
+                        {(() => {
+                          const parse = (v: any) => {
+                            const s = String(v || '').replace(/\s|€/g, '');
+                            if (s.includes(',')) return parseFloat(s.replace(/\./g, '').replace(',', '.')) || 0;
+                            return parseFloat(s) || 0;
+                          };
+                          const base = parse(carPrice);
+                          const totalCosts = costs.reduce((acc, c) => acc + parse(c.value), 0);
+                          return (base + totalCosts).toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' });
+                        })()}
+                      </div>
                     </div>
                   </div>
                 </div>
