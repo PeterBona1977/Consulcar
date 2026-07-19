@@ -533,6 +533,56 @@ export default function AdminPage() {
     }
   };
 
+  const handleProfileImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    setStatus("A carregar imagem de perfil...");
+    const formData = new FormData();
+    formData.append('images', e.target.files[0]);
+
+    try {
+      const res = await fetch('/api/admin/upload', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${session?.access_token}` },
+        body: formData
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Erro ao carregar imagem');
+      if (data.urls && data.urls.length > 0) {
+        setProfileImage(data.urls[0]);
+        setStatus("Imagem de perfil carregada com sucesso!");
+      }
+    } catch (err: any) {
+      setStatus(`Erro ao carregar imagem: ${err.message}`);
+    } finally {
+      setTimeout(() => setStatus(""), 3000);
+    }
+  };
+
+  const handleProfileCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    setStatus("A carregar imagem de capa...");
+    const formData = new FormData();
+    formData.append('images', e.target.files[0]);
+
+    try {
+      const res = await fetch('/api/admin/upload', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${session?.access_token}` },
+        body: formData
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Erro ao carregar imagem');
+      if (data.urls && data.urls.length > 0) {
+        setProfileCover(data.urls[0]);
+        setStatus("Imagem de capa carregada com sucesso!");
+      }
+    } catch (err: any) {
+      setStatus(`Erro ao carregar imagem: ${err.message}`);
+    } finally {
+      setTimeout(() => setStatus(""), 3000);
+    }
+  };
+
   const handleSaveVehicle = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus("A guardar viatura...");
@@ -1159,13 +1209,13 @@ export default function AdminPage() {
                     <input type="text" value={profilePhone} onChange={e=>setProfilePhone(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }} />
                   </div>
                   <div style={{ marginBottom: '20px' }}>
-                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Imagem de Perfil (URL ou Faça Upload de uma viatura e copie o link)</label>
-                    <input type="text" value={profileImage} onChange={e=>setProfileImage(e.target.value)} placeholder="https://..." style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }} />
+                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Imagem de Perfil (Dispositivo ou Computador)</label>
+                    <input type="file" accept="image/*" onChange={handleProfileImageUpload} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ccc', background: '#fff' }} />
                     {profileImage && <img src={profileImage} style={{ width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover', marginTop: '10px' }} />}
                   </div>
                   <div style={{ marginBottom: '20px' }}>
-                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Imagem de Capa (URL)</label>
-                    <input type="text" value={profileCover} onChange={e=>setProfileCover(e.target.value)} placeholder="https://..." style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }} />
+                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Imagem de Capa (Dispositivo ou Computador)</label>
+                    <input type="file" accept="image/*" onChange={handleProfileCoverUpload} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ccc', background: '#fff' }} />
                     {profileCover && <img src={profileCover} style={{ width: '100%', height: '120px', borderRadius: '8px', objectFit: 'cover', marginTop: '10px' }} />}
                   </div>
                   <div style={{ marginBottom: '20px' }}>
