@@ -748,9 +748,17 @@ export default function AdminPage() {
               <Link href="/" target="_blank" style={{ color: '#00d2ff', textDecoration: 'none', fontSize: '1rem', fontWeight: 'bold' }}>Ver Site Principal</Link>
               <button 
                 onClick={() => {
-                  navigator.clipboard.writeText(window.location.origin + "/instalar");
-                  setCopiedPwaLink(true);
-                  setTimeout(() => setCopiedPwaLink(false), 2000);
+                  const linkToCopy = window.location.origin + "/instalar";
+                  if (navigator.clipboard && window.isSecureContext) {
+                    navigator.clipboard.writeText(linkToCopy).then(() => {
+                      setCopiedPwaLink(true);
+                      setTimeout(() => setCopiedPwaLink(false), 2000);
+                    }).catch(() => {
+                      prompt("Copie o link manualmente:", linkToCopy);
+                    });
+                  } else {
+                    prompt("Copie o link manualmente:", linkToCopy);
+                  }
                 }}
                 style={{ background: copiedPwaLink ? '#2e7d32' : '#333', color: '#fff', border: 'none', padding: '10px 15px', borderRadius: '6px', cursor: 'pointer', fontSize: '1rem', fontWeight: 'bold', width: '100%', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
               >
@@ -1132,9 +1140,17 @@ export default function AdminPage() {
                 </div>
                 <button 
                   onClick={() => {
-                    navigator.clipboard.writeText(window.location.origin + "/instalar");
-                    setCopiedPwaLink(true);
-                    setTimeout(() => setCopiedPwaLink(false), 2000);
+                    const linkToCopy = window.location.origin + "/instalar";
+                    if (navigator.clipboard && window.isSecureContext) {
+                      navigator.clipboard.writeText(linkToCopy).then(() => {
+                        setCopiedPwaLink(true);
+                        setTimeout(() => setCopiedPwaLink(false), 2000);
+                      }).catch(() => {
+                        prompt("Copie o link manualmente:", linkToCopy);
+                      });
+                    } else {
+                      prompt("Copie o link manualmente:", linkToCopy);
+                    }
                   }}
                   style={{ padding: '10px 20px', background: copiedPwaLink ? '#2e7d32' : '#00d2ff', color: copiedPwaLink ? '#fff' : '#000', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}
                 >

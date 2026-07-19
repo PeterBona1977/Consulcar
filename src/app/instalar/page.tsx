@@ -7,9 +7,17 @@ export default function InstalarPage() {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(window.location.href);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    const linkToCopy = window.location.href;
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(linkToCopy).then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      }).catch(() => {
+        prompt("Copie o link manualmente:", linkToCopy);
+      });
+    } else {
+      prompt("Copie o link manualmente:", linkToCopy);
+    }
   };
 
   return (
