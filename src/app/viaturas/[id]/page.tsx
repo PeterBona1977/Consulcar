@@ -12,6 +12,7 @@ export default function ViaturaDetails() {
   const params = useParams();
   const router = useRouter();
   const [car, setCar] = useState<any>(null);
+  const [vendor, setVendor] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [settings, setSettings] = useState<any>(null);
   const [activeImage, setActiveImage] = useState<string>("");
@@ -35,6 +36,10 @@ export default function ViaturaDetails() {
       if (data) {
         setCar(data);
         setActiveImage(data.image || 'https://via.placeholder.com/800x600.png?text=Sem+Imagem');
+        if (data.user_id) {
+          const { data: vendorData } = await supabase.from('user_profiles').select('*').eq('id', data.user_id).single();
+          if (vendorData) setVendor(vendorData);
+        }
       }
       
       const { data: cms } = await supabase.from('site_settings').select('data').eq('id', 1).single();
@@ -189,6 +194,34 @@ export default function ViaturaDetails() {
                   Pedir Proposta Chave-na-Mão
                 </button>
               </div>
+
+              {/* Vendor Info Section */}
+              {vendor && (
+                <div style={{ marginTop: '30px', background: 'var(--surface-light, rgba(20,20,20,0.5))', padding: '25px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                  <h3 style={{ fontSize: '1.1rem', marginBottom: '15px', color: 'rgba(255,255,255,0.7)' }}>Vendedor Responsável</h3>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '15px' }}>
+                    {vendor.profile_image ? (
+                      <img src={vendor.profile_image} alt={vendor.name} style={{ width: '60px', height: '60px', borderRadius: '50%', objectFit: 'cover' }} />
+                    ) : (
+                      <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: '#333', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem' }}>👤</div>
+                    )}
+                    <div>
+                      <h4 style={{ fontSize: '1.2rem', fontWeight: 'bold', margin: 0 }}>{vendor.name || "Vendedor"}</h4>
+                      <Link href={`/vendedor/${vendor.id}`} style={{ color: 'var(--accent-primary)', fontSize: '0.9rem', textDecoration: 'none' }}>Ver Perfil do Vendedor</Link>
+                    </div>
+                  </div>
+                  {vendor.phone && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'rgba(255,255,255,0.8)', marginBottom: '10px' }}>
+                      <span>📞</span> <span>{vendor.phone}</span>
+                    </div>
+                  )}
+                  {vendor.email && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'rgba(255,255,255,0.8)' }}>
+                      <span>✉️</span> <span>{vendor.email}</span>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
