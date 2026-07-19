@@ -606,11 +606,14 @@ export default function AdminPage() {
         .admin-nav-container { border-bottom: 1px solid #ddd; background: #111; }
         
         /* Mobile Default Styles */
-        .admin-hamburger { display: flex; padding: 15px 20px; background: #111; color: white; cursor: pointer; font-weight: bold; justify-content: space-between; align-items: center; }
-        .admin-nav { display: none; flex-direction: column; width: 100%; background: #111; }
-        .admin-nav.open { display: flex; }
+        .admin-hamburger { display: flex; padding: 15px 20px; background: #111; color: white; cursor: pointer; font-weight: bold; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; }
+        .admin-nav { position: fixed; top: 0; right: -300px; width: 300px; height: 100vh; background: #111; flex-direction: column; display: flex; transition: right 0.3s ease-in-out; z-index: 1000; box-shadow: -5px 0 15px rgba(0,0,0,0.5); overflow-y: auto; }
+        .admin-nav.open { right: 0; }
+        .admin-nav-close { text-align: right; padding: 15px 20px; cursor: pointer; color: white; font-size: 1.5rem; border-bottom: 1px solid #222; }
         .admin-nav button { text-align: left; padding: 15px 20px; border-bottom: 1px solid #222; color: white; border: none; cursor: pointer; font-size: 1rem; font-weight: bold; background: transparent; }
-        .admin-nav .admin-nav-actions { width: 100%; justify-content: space-between; padding: 15px 20px; display: flex; }
+        .admin-nav .admin-nav-actions { width: 100%; flex-direction: column; justify-content: flex-start; padding: 15px 20px; display: flex; gap: 15px; border-top: 1px solid #333; }
+        .admin-nav-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 999; opacity: 0; pointer-events: none; transition: opacity 0.3s ease-in-out; }
+        .admin-nav-overlay.open { opacity: 1; pointer-events: auto; }
         .admin-content-pad { padding: 20px 15px !important; }
         
         .admin-grid { display: grid; grid-template-columns: 1fr; gap: 20px; margin-bottom: 30px; }
@@ -632,10 +635,6 @@ export default function AdminPage() {
         
         /* Desktop Override */
         @media (min-width: 768px) {
-          .admin-hamburger { display: none; }
-          .admin-nav { display: flex; flex-direction: row; width: auto; flex-wrap: wrap; }
-          .admin-nav button { flex: 1; padding: 15px; text-align: center; border-bottom: none; }
-          .admin-nav .admin-nav-actions { width: auto; justify-content: flex-start; padding: 15px; }
           .admin-content-pad { padding: 40px !important; }
           
           .admin-grid { grid-template-columns: 1fr 1fr; }
@@ -663,11 +662,13 @@ export default function AdminPage() {
         )}
 
         <div className="admin-nav-container">
+          <div className={`admin-nav-overlay ${isAdminMenuOpen ? 'open' : ''}`} onClick={() => setIsAdminMenuOpen(false)}></div>
           <div className="admin-hamburger" onClick={() => setIsAdminMenuOpen(!isAdminMenuOpen)}>
             <span>Menu de Administração ({activeTab.charAt(0).toUpperCase() + activeTab.slice(1)})</span>
             <span>☰</span>
           </div>
           <div className={`admin-nav ${isAdminMenuOpen ? 'open' : ''}`}>
+            <div className="admin-nav-close" onClick={() => setIsAdminMenuOpen(false)}>✕</div>
             <button onClick={() => { setActiveTab('viaturas'); setIsAdminMenuOpen(false); }} style={{ background: activeTab === 'viaturas' ? '#222' : '#111' }}>
               🚘 Nova Viatura
             </button>
@@ -690,9 +691,9 @@ export default function AdminPage() {
             <button onClick={() => { setActiveTab('perfil'); setIsAdminMenuOpen(false); }} style={{ background: activeTab === 'perfil' ? '#222' : '#111' }}>
               👤 O Meu Perfil
             </button>
-            <div className="admin-nav-actions" style={{ padding: '15px', display: 'flex', gap: '15px', alignItems: 'center' }}>
-              <Link href="/" style={{ color: '#00d2ff', textDecoration: 'none', fontSize: '0.9rem' }}>Site Principal</Link>
-              <button onClick={handleLogout} style={{ background: 'transparent', color: '#ef5350', border: '1px solid #ef5350', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.9rem', flex: 'none' }}>Sair</button>
+            <div className="admin-nav-actions">
+              <Link href="/" target="_blank" style={{ color: '#00d2ff', textDecoration: 'none', fontSize: '1rem', fontWeight: 'bold' }}>Ver Site Principal</Link>
+              <button onClick={handleLogout} style={{ background: '#c62828', color: '#fff', border: 'none', padding: '10px 15px', borderRadius: '6px', cursor: 'pointer', fontSize: '1rem', fontWeight: 'bold', width: '100%', textAlign: 'center' }}>Sair da Sessão</button>
             </div>
           </div>
         </div>
