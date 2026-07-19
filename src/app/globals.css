@@ -789,7 +789,7 @@ footer {
     justify-content: space-between;
     align-items: center;
 }
-    
+@media (max-width: 768px) {
     /* Mobile Fixed CTA for Car Details */
     .mobile-fixed-cta {
         position: fixed !important;
