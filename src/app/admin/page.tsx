@@ -801,10 +801,12 @@ export default function AdminPage() {
                               if (lastComma > lastDot) s = s.replace(/\./g, '').replace(',', '.');
                               else s = s.replace(/,/g, '');
                             } else if (s.includes(',')) {
-                              s = s.replace(',', '.');
+                              const parts = s.split(',');
+                              if (parts.length > 2 || parts[parts.length - 1].length === 3) s = s.replace(/,/g, '');
+                              else s = s.replace(',', '.');
                             } else if (s.includes('.')) {
                               const parts = s.split('.');
-                              if (parts[parts.length - 1].length === 3) s = s.replace(/\./g, '');
+                              if (parts.length > 2 || parts[parts.length - 1].length === 3) s = s.replace(/\./g, '');
                             }
                             return parseFloat(s) || 0;
                           };
