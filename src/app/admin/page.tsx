@@ -746,6 +746,16 @@ export default function AdminPage() {
             </button>
             <div className="admin-nav-actions">
               <Link href="/" target="_blank" style={{ color: '#00d2ff', textDecoration: 'none', fontSize: '1rem', fontWeight: 'bold' }}>Ver Site Principal</Link>
+              <button 
+                onClick={() => {
+                  navigator.clipboard.writeText(window.location.origin + "/instalar");
+                  setCopiedPwaLink(true);
+                  setTimeout(() => setCopiedPwaLink(false), 2000);
+                }}
+                style={{ background: copiedPwaLink ? '#2e7d32' : '#333', color: '#fff', border: 'none', padding: '10px 15px', borderRadius: '6px', cursor: 'pointer', fontSize: '1rem', fontWeight: 'bold', width: '100%', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+              >
+                {copiedPwaLink ? '✅ Copiado!' : '📱 Copiar Link da App'}
+              </button>
               <button onClick={handleLogout} style={{ background: '#c62828', color: '#fff', border: 'none', padding: '10px 15px', borderRadius: '6px', cursor: 'pointer', fontSize: '1rem', fontWeight: 'bold', width: '100%', textAlign: 'center' }}>Sair da Sessão</button>
             </div>
           </div>
