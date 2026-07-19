@@ -100,6 +100,9 @@ export default function AdminPage() {
   // Gestão de Viaturas
   const [publishedVehicles, setPublishedVehicles] = useState<any[]>([]);
 
+  // Partilha da PWA
+  const [copiedPwaLink, setCopiedPwaLink] = useState(false);
+
   useEffect(() => {
     checkUser();
   }, []);
@@ -1110,6 +1113,24 @@ export default function AdminPage() {
             <div>
               <h2 style={{ marginBottom: '20px' }}>Gestão de Administradores</h2>
               {status && <div style={{ padding: '15px', background: '#e0f7fa', color: '#006064', marginBottom: '20px', borderRadius: '8px' }}>{status}</div>}
+
+              {/* Share PWA Link Box */}
+              <div style={{ background: '#111', padding: '20px', borderRadius: '12px', border: '1px solid #333', marginBottom: '30px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '15px' }}>
+                <div>
+                  <h3 style={{ fontSize: '1.1rem', marginBottom: '5px', color: '#fff' }}>Aplicação Móvel (PWA)</h3>
+                  <p style={{ color: '#aaa', fontSize: '0.9rem', margin: 0 }}>Partilhe este link com a sua equipa para instalarem a App Consulcar.</p>
+                </div>
+                <button 
+                  onClick={() => {
+                    navigator.clipboard.writeText(window.location.origin + "/instalar");
+                    setCopiedPwaLink(true);
+                    setTimeout(() => setCopiedPwaLink(false), 2000);
+                  }}
+                  style={{ padding: '10px 20px', background: copiedPwaLink ? '#2e7d32' : '#00d2ff', color: copiedPwaLink ? '#fff' : '#000', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}
+                >
+                  {copiedPwaLink ? '✅ Link Copiado' : 'Copiar Link da App'}
+                </button>
+              </div>
               
               <p style={{ marginBottom: '30px', color: '#666' }}>Adicione ou remova utilizadores com acesso a este painel.</p>
               
