@@ -12,6 +12,31 @@ interface DictionaryEntry {
   pt_term: string;
 }
 
+const parseNumber = (v: any) => {
+  let s = String(v || '').replace(/\s|€/g, '');
+  if (s.includes(',') && s.includes('.')) {
+    const lastComma = s.lastIndexOf(',');
+    const lastDot = s.lastIndexOf('.');
+    if (lastComma > lastDot) s = s.replace(/\./g, '').replace(',', '.');
+    else s = s.replace(/,/g, '');
+  } else if (s.includes(',')) {
+    const parts = s.split(',');
+    if (parts.length > 2 || parts[parts.length - 1].length === 3) s = s.replace(/,/g, '');
+    else s = s.replace(',', '.');
+  } else if (s.includes('.')) {
+    const parts = s.split('.');
+    if (parts.length > 2 || parts[parts.length - 1].length === 3) s = s.replace(/\./g, '');
+  }
+  return parseFloat(s) || 0;
+};
+
+const formatPriceStr = (v: any) => {
+  const num = parseNumber(v);
+  if (num === 0 && v) return v;
+  const formatted = new Intl.NumberFormat('de-DE', { minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(num);
+  return `${formatted} €`;
+};
+
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState("viaturas");
   const [isAdminMenuOpen, setIsAdminMenuOpen] = useState(false);
@@ -472,9 +497,8 @@ export default function AdminPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Erro ao extrair dados');
-      
       if (data.title) setCarTitle(data.title);
-      if (data.price) setCarPrice(data.price);
+      if (data.price) setCarPrice(formatPriceStr(data.price));
       if (data.image) setCarImage(data.image);
       if (data.description) setCarDesc(data.description);
       
@@ -793,26 +817,9 @@ export default function AdminPage() {
                       <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#111' }}>
                         Total:{' '}
                         {(() => {
-                          const parse = (v: any) => {
-                            let s = String(v || '').replace(/\s|€/g, '');
-                            if (s.includes(',') && s.includes('.')) {
-                              const lastComma = s.lastIndexOf(',');
-                              const lastDot = s.lastIndexOf('.');
-                              if (lastComma > lastDot) s = s.replace(/\./g, '').replace(',', '.');
-                              else s = s.replace(/,/g, '');
-                            } else if (s.includes(',')) {
-                              const parts = s.split(',');
-                              if (parts.length > 2 || parts[parts.length - 1].length === 3) s = s.replace(/,/g, '');
-                              else s = s.replace(',', '.');
-                            } else if (s.includes('.')) {
-                              const parts = s.split('.');
-                              if (parts.length > 2 || parts[parts.length - 1].length === 3) s = s.replace(/\./g, '');
-                            }
-                            return parseFloat(s) || 0;
-                          };
-                          const base = parse(carPrice);
-                          const totalCosts = costs.reduce((acc, c) => acc + parse(c.value), 0);
-                          return (base + totalCosts).toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' });
+                          const base = parseNumber(carPrice);
+                          const totalCosts = costs.reduce((acc, c) => acc + parseNumber(c.value), 0);
+                          return formatPriceStr(base + totalCosts);
                         })()}
                       </div>
                     </div>
@@ -938,7 +945,7 @@ export default function AdminPage() {
                         )}
                       </td>
                       <td data-label="Título" style={{ fontWeight: 'bold', wordBreak: 'break-word', maxWidth: '300px' }}>{v.title}</td>
-                      <td data-label="Preço" style={{ wordBreak: 'break-word', maxWidth: '200px' }}>{v.price}</td>
+                      <td data-label="Preço" style={{ wordBreak: 'break-word', maxWidth: '200px' }}>{formatPriceStr(v.price)}</td>
                       <td data-label="Ações">
                         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                           <Link href={`/viaturas/${v.id}`} target="_blank" style={{ display: 'inline-block', padding: '6px 12px', background: '#e3f2fd', color: '#1565c0', textDecoration: 'none', borderRadius: '4px' }}>Ver</Link>
