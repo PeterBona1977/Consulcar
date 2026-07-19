@@ -3,6 +3,7 @@
 import { useState, useRef, FormEvent, DragEvent, ChangeEvent, useEffect } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import { getVehicleFinalPriceStr } from "@/lib/priceUtils";
 
 interface Vehicle {
   id: string;
@@ -269,7 +270,7 @@ export default function Home() {
                         <img src={car.image || 'https://via.placeholder.com/800x600.png?text=Sem+Imagem'} alt={car.title} style={{ width: "100%", height: "220px", objectFit: "cover", borderBottom: "1px solid var(--border-color)" }} />
                         <div style={{ padding: "20px" }}>
                           <h3 style={{ fontSize: "1.2rem", marginBottom: "8px", lineHeight: "1.3" }}>{car.title}</h3>
-                          <p style={{ color: "var(--accent-primary)", fontWeight: "bold", fontSize: "1.3rem", marginBottom: "16px" }}>{car.price}</p>
+                          <p style={{ color: "var(--accent-primary)", fontWeight: "bold", fontSize: "1.3rem", marginBottom: "16px" }}>{getVehicleFinalPriceStr(car)}</p>
                           <div style={{ display: 'flex', gap: '10px' }}>
                             <Link href={`/viaturas/${car.id}`} className="btn btn-primary" style={{ flex: 1, padding: "10px", fontSize: "0.95rem", textAlign: "center" }}>Ver Detalhes</Link>
                           </div>

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { parseNumber, formatPriceStr, getVehicleFinalPriceStr } from "@/lib/priceUtils";
 
 interface DictionaryEntry {
   id: string;
@@ -11,31 +12,6 @@ interface DictionaryEntry {
   foreign_term: string;
   pt_term: string;
 }
-
-const parseNumber = (v: any) => {
-  let s = String(v || '').replace(/\s|€/g, '');
-  if (s.includes(',') && s.includes('.')) {
-    const lastComma = s.lastIndexOf(',');
-    const lastDot = s.lastIndexOf('.');
-    if (lastComma > lastDot) s = s.replace(/\./g, '').replace(',', '.');
-    else s = s.replace(/,/g, '');
-  } else if (s.includes(',')) {
-    const parts = s.split(',');
-    if (parts.length > 2 || parts[parts.length - 1].length === 3) s = s.replace(/,/g, '');
-    else s = s.replace(',', '.');
-  } else if (s.includes('.')) {
-    const parts = s.split('.');
-    if (parts.length > 2 || parts[parts.length - 1].length === 3) s = s.replace(/\./g, '');
-  }
-  return parseFloat(s) || 0;
-};
-
-const formatPriceStr = (v: any) => {
-  const num = parseNumber(v);
-  if (num === 0 && v) return v;
-  const formatted = new Intl.NumberFormat('de-DE', { minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(num);
-  return `${formatted} €`;
-};
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState("viaturas");
@@ -945,7 +921,7 @@ export default function AdminPage() {
                         )}
                       </td>
                       <td data-label="Título" style={{ fontWeight: 'bold', wordBreak: 'break-word', maxWidth: '300px' }}>{v.title}</td>
-                      <td data-label="Preço" style={{ wordBreak: 'break-word', maxWidth: '200px' }}>{formatPriceStr(v.price)}</td>
+                      <td data-label="Preço" style={{ wordBreak: 'break-word', maxWidth: '200px' }}>{getVehicleFinalPriceStr(v)}</td>
                       <td data-label="Ações">
                         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                           <Link href={`/viaturas/${v.id}`} target="_blank" style={{ display: 'inline-block', padding: '6px 12px', background: '#e3f2fd', color: '#1565c0', textDecoration: 'none', borderRadius: '4px' }}>Ver</Link>

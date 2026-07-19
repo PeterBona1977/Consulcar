@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import Link from 'next/link';
+import { getVehicleFinalPriceStr } from '@/lib/priceUtils';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -104,7 +105,7 @@ export default async function VendorProfilePage({ params }: { params: { id: stri
                   )}
                   <div style={{ padding: '20px' }}>
                     <h3 style={{ fontSize: '1.2rem', marginBottom: '10px' }}>{v.title}</h3>
-                    <div style={{ fontSize: '1.4rem', fontWeight: 'bold', color: '#00d2ff' }}>{v.price}</div>
+                    <div style={{ fontSize: '1.4rem', fontWeight: 'bold', color: '#00d2ff' }}>{getVehicleFinalPriceStr(v)}</div>
                   </div>
                 </div>
               </Link>

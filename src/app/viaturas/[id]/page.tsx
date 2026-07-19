@@ -1,6 +1,8 @@
 "use client";
 
 export const runtime = 'edge';
+import { ArrowLeft, Check, Copy, Share2, Facebook, Twitter, Mail } from 'lucide-react';
+import { getVehicleFinalPriceStr, formatPriceStr } from '@/lib/priceUtils';
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -152,36 +154,24 @@ export default function ViaturaDetails() {
               {/* Preço e Custos Adicionais */}
               <div style={{ marginTop: '25px' }}>
                 {(!specs.costs || !Array.isArray(specs.costs) || specs.costs.length === 0) ? (
-                  <p style={{ color: 'var(--accent-primary)', fontSize: '2.2rem', fontWeight: 'bold', marginBottom: '15px' }}>{car.price}</p>
+                  <p style={{ color: 'var(--accent-primary)', fontSize: '2.2rem', fontWeight: 'bold', marginBottom: '15px' }}>{getVehicleFinalPriceStr(car)}</p>
                 ) : (
                   <div style={{ background: 'rgba(255,255,255,0.03)', padding: '20px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '1.1rem', color: 'rgba(255,255,255,0.9)' }}>
                       <span>Valor da viatura</span>
-                      <span style={{ fontWeight: 'bold' }}>{car.price}</span>
+                      <span style={{ fontWeight: 'bold' }}>{formatPriceStr(car.price)}</span>
                     </div>
                     {specs.costs.map((c: any, idx: number) => (
                       <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '1.1rem', color: 'rgba(255,255,255,0.9)' }}>
                         <span>{c.description}</span>
-                        <span style={{ fontWeight: 'bold' }}>{c.value} €</span>
+                        <span style={{ fontWeight: 'bold' }}>{formatPriceStr(c.value)}</span>
                       </div>
                     ))}
                     <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', margin: '15px 0' }}></div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <span style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'rgba(255,255,255,0.9)' }}>Preço Total</span>
                       <span style={{ color: 'var(--accent-primary)', fontSize: '2.2rem', fontWeight: 'bold' }}>
-                        {(() => {
-                          let clean = (car.price || "0").replace(/[^0-9.,]/g, '');
-                          if (clean.match(/[.,]\d{2}$/)) clean = clean.slice(0, -3);
-                          clean = clean.replace(/[.,]/g, '');
-                          const basePrice = parseInt(clean, 10);
-                          let totalCosts = 0;
-                          specs.costs.forEach((c: any) => {
-                            const val = parseFloat(c.value);
-                            if (!isNaN(val)) totalCosts += val;
-                          });
-                          const finalTotal = (isNaN(basePrice) ? 0 : basePrice) + totalCosts;
-                          return new Intl.NumberFormat('de-DE').format(finalTotal) + ' €';
-                        })()}
+                        {getVehicleFinalPriceStr(car)}
                       </span>
                     </div>
                   </div>
