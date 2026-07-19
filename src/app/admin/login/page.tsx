@@ -9,13 +9,29 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
   const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setMessage("");
     setLoading(true);
+
+    if (isForgotPassword) {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/admin/update-password`,
+      });
+      if (error) {
+        setError(error.message);
+      } else {
+        setMessage("Foi enviado um email com instruções para repor a password.");
+      }
+      setLoading(false);
+      return;
+    }
 
     const { error } = await supabase.auth.signInWithPassword({
       email,
@@ -46,6 +62,11 @@ export default function LoginPage() {
             {error}
           </div>
         )}
+        {message && (
+          <div style={{ padding: '12px', background: '#e8f5e9', color: '#2e7d32', borderRadius: '8px', marginBottom: '20px', fontSize: '0.9rem', textAlign: 'center' }}>
+            {message}
+          </div>
+        )}
         
         <form onSubmit={handleLogin}>
           <div style={{ marginBottom: '20px' }}>
@@ -60,16 +81,34 @@ export default function LoginPage() {
             />
           </div>
           
-          <div style={{ marginBottom: '30px' }}>
-            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>Password</label>
-            <input 
-              type="password" 
-              required 
-              value={password} 
-              onChange={e => setPassword(e.target.value)} 
-              style={{ width: '100%', padding: '12px', border: '1px solid #ccc', borderRadius: '8px' }} 
-              placeholder="••••••••"
-            />
+          {!isForgotPassword && (
+            <div style={{ marginBottom: '10px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                <label style={{ fontWeight: 'bold' }}>Password</label>
+              </div>
+              <input 
+                type="password" 
+                required 
+                value={password} 
+                onChange={e => setPassword(e.target.value)} 
+                style={{ width: '100%', padding: '12px', border: '1px solid #ccc', borderRadius: '8px' }} 
+                placeholder="••••••••"
+              />
+            </div>
+          )}
+
+          <div style={{ textAlign: 'right', marginBottom: '30px' }}>
+            <button 
+              type="button" 
+              onClick={() => {
+                setIsForgotPassword(!isForgotPassword);
+                setError("");
+                setMessage("");
+              }} 
+              style={{ background: 'none', border: 'none', color: '#00d2ff', cursor: 'pointer', fontSize: '0.85rem' }}
+            >
+              {isForgotPassword ? "Voltar ao Login" : "Esqueci-me da password"}
+            </button>
           </div>
           
           <button 
@@ -77,7 +116,7 @@ export default function LoginPage() {
             disabled={loading}
             style={{ width: '100%', padding: '14px', background: '#000', color: 'white', border: 'none', borderRadius: '8px', fontSize: '1.1rem', fontWeight: 'bold', cursor: loading ? 'not-allowed' : 'pointer' }}
           >
-            {loading ? "A entrar..." : "Entrar Seguro"}
+            {loading ? "Aguarde..." : (isForgotPassword ? "Recuperar Password" : "Entrar Seguro")}
           </button>
         </form>
         

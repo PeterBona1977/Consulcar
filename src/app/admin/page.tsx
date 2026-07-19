@@ -28,6 +28,25 @@ export default function AdminPage() {
   const [newAdminPassword, setNewAdminPassword] = useState("");
   const [newAdminRole, setNewAdminRole] = useState("admin");
   
+  // Gestão de Admins Estendida
+  const [editingAdminId, setEditingAdminId] = useState<string | null>(null);
+  const [editingAdminIsActive, setEditingAdminIsActive] = useState<boolean>(true);
+  
+  // Transferência de Viaturas
+  const [transferModalOpen, setTransferModalOpen] = useState(false);
+  const [inactivatingAdminId, setInactivatingAdminId] = useState<string | null>(null);
+  const [transferVehicleId, setTransferVehicleId] = useState<string | null>(null);
+  const [transferTargetUserId, setTransferTargetUserId] = useState("");
+
+  // O Meu Perfil
+  const [profileName, setProfileName] = useState("");
+  const [profilePhone, setProfilePhone] = useState("");
+  const [profileImage, setProfileImage] = useState("");
+  const [profileCover, setProfileCover] = useState("");
+  const [profileBio, setProfileBio] = useState("");
+  const [profileHistory, setProfileHistory] = useState("");
+  const [profileLoading, setProfileLoading] = useState(false);
+
   // Leads / CRM
   const [leads, setLeads] = useState<any[]>([]);
   
@@ -69,8 +88,6 @@ export default function AdminPage() {
     newCosts[index].isCustom = false;
     setCosts(newCosts);
   };
-
-
   
   // Dinâmicos
   const [specs, setSpecs] = useState<{key: string, value: string}[]>([{key: '', value: ''}]);
@@ -109,6 +126,7 @@ export default function AdminPage() {
       setAuthLoading(false);
       fetchDictionary();
       fetchPublishedVehicles(role, session.user.id);
+      fetchProfile(session.user.id);
       if (role !== 'sales') fetchAdmins(session.access_token);
       fetchLeads(session.access_token);
     }
@@ -183,22 +201,137 @@ export default function AdminPage() {
       setStatus(`Erro: ${error.message}`);
     }
   };
+  const fetchProfile = async (userId: string) => {
+    setProfileLoading(true);
+    const { data, error } = await supabase.from('user_profiles').select('*').eq('id', userId).single();
+    if (data) {
+      setProfileName(data.name || "");
+      setProfilePhone(data.phone || "");
+      setProfileImage(data.profile_image || "");
+      setProfileCover(data.cover_image || "");
+      setProfileBio(data.biography || "");
+      setProfileHistory(data.history || "");
+    }
+    setProfileLoading(false);
+  };
 
-  const handleDeleteAdmin = async (id: string) => {
-    if (!session || !confirm("Tem a certeza que deseja eliminar este administrador?")) return;
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!session) return;
+    setStatus("A guardar perfil...");
+    const { error } = await supabase.from('user_profiles').upsert({
+      id: session.user.id,
+      name: profileName,
+      phone: profilePhone,
+      profile_image: profileImage,
+      cover_image: profileCover,
+      biography: profileBio,
+      history: profileHistory
+    });
+    if (error) setStatus(`Erro ao guardar perfil: ${error.message}`);
+    else setStatus("Perfil guardado com sucesso!");
+    setTimeout(() => setStatus(""), 4000);
+  };
+
+  const handleEditAdminSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!session || !editingAdminId) return;
+    setStatus("A atualizar administrador...");
     try {
-      const res = await fetch(`/api/admin/users?id=${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${session.access_token}` }
+      const res = await fetch('/api/admin/users', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({ 
+          id: editingAdminId, 
+          email: newAdminEmail || undefined, 
+          password: newAdminPassword || undefined, 
+          role: newAdminRole,
+          is_active: editingAdminIsActive
+        })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       
+      setStatus("Administrador atualizado com sucesso!");
+      setTimeout(() => setStatus(""), 5000);
+      setNewAdminEmail("");
+      setNewAdminPassword("");
+      setEditingAdminId(null);
       fetchAdmins(session.access_token);
+    } catch (error: any) {
+      setStatus(`Erro: ${error.message}`);
+    }
+  };
+
+  const handleInactivateAdminClick = async (id: string) => {
+    // Check if user has vehicles
+    const { data: vehicles } = await supabase.from('vehicles').select('id').eq('user_id', id).limit(1);
+    if (vehicles && vehicles.length > 0) {
+      setInactivatingAdminId(id);
+      setTransferTargetUserId("");
+      setTransferModalOpen(true);
+    } else {
+      // Direct inactivation
+      if (confirm("Tem a certeza que deseja inativar este administrador? Ele não terá mais acesso.")) {
+        inactivateAdminRequest(id);
+      }
+    }
+  };
+
+  const inactivateAdminRequest = async (id: string) => {
+    try {
+      const res = await fetch('/api/admin/users', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+        body: JSON.stringify({ id, is_active: false })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      fetchAdmins(session.access_token);
+      setStatus("Administrador inativado com sucesso!");
+      setTimeout(() => setStatus(""), 4000);
     } catch (error: any) {
       alert(`Erro: ${error.message}`);
     }
   };
+
+  const handleTransferVehiclesSubmit = async () => {
+    if (!transferTargetUserId) return alert("Selecione um utilizador de destino");
+    setStatus("A transferir viaturas...");
+    try {
+      const payload = transferVehicleId 
+        ? { vehicle_id: transferVehicleId, to_user_id: transferTargetUserId }
+        : { from_user_id: inactivatingAdminId, to_user_id: transferTargetUserId };
+
+      const res = await fetch('/api/admin/transfer-vehicles', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+
+      setTransferModalOpen(false);
+      setTransferVehicleId(null);
+      fetchPublishedVehicles();
+
+      if (inactivatingAdminId) {
+        // Proceed to inactivate now that vehicles are transferred
+        await inactivateAdminRequest(inactivatingAdminId);
+        setInactivatingAdminId(null);
+      } else {
+        setStatus("Transferência concluída.");
+        setTimeout(() => setStatus(""), 4000);
+      }
+    } catch (error: any) {
+      alert(`Erro: ${error.message}`);
+      setStatus("");
+    }
+  };
+
 
   const fetchDictionary = async () => {
     const { data } = await supabase.from('import_dictionary').select('*').order('created_at', { ascending: false });
@@ -529,6 +662,9 @@ export default function AdminPage() {
                 👥 Admins
               </button>
             )}
+            <button onClick={() => { setActiveTab('perfil'); setIsAdminMenuOpen(false); }} style={{ background: activeTab === 'perfil' ? '#222' : '#111' }}>
+              👤 O Meu Perfil
+            </button>
             <div className="admin-nav-actions" style={{ padding: '15px', display: 'flex', gap: '15px', alignItems: 'center' }}>
               <Link href="/" style={{ color: '#00d2ff', textDecoration: 'none', fontSize: '0.9rem' }}>Site Principal</Link>
               <button onClick={handleLogout} style={{ background: 'transparent', color: '#ef5350', border: '1px solid #ef5350', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.9rem', flex: 'none' }}>Sair</button>
@@ -755,6 +891,11 @@ export default function AdminPage() {
                       <td style={{ padding: '12px' }}>
                         <Link href={`/viaturas/${v.id}`} target="_blank" style={{ display: 'inline-block', padding: '6px 12px', background: '#e3f2fd', color: '#1565c0', textDecoration: 'none', borderRadius: '4px', marginRight: '10px' }}>Ver</Link>
                         <button onClick={() => handleEditVehicle(v)} style={{ padding: '6px 12px', background: '#fff3e0', color: '#ef6c00', border: 'none', borderRadius: '4px', cursor: 'pointer', marginRight: '10px' }}>Editar</button>
+                        <button onClick={() => {
+                          setTransferVehicleId(v.id);
+                          setTransferTargetUserId("");
+                          setTransferModalOpen(true);
+                        }} style={{ padding: '6px 12px', background: '#e8f5e9', color: '#2e7d32', border: 'none', borderRadius: '4px', cursor: 'pointer', marginRight: '10px' }}>Transferir</button>
                         <button onClick={() => handleDeleteVehicle(v.id)} style={{ padding: '6px 12px', background: '#ffebee', color: '#c62828', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Apagar</button>
                       </td>
                     </tr>
@@ -897,33 +1038,137 @@ export default function AdminPage() {
                   <tr style={{ background: '#eee' }}>
                     <th style={{ padding: '12px' }}>Email</th>
                     <th style={{ padding: '12px' }}>Função</th>
+                    <th style={{ padding: '12px' }}>Estado</th>
                     <th style={{ padding: '12px' }}>Criado em</th>
-                    <th style={{ padding: '12px', width: '100px' }}>Ações</th>
+                    <th style={{ padding: '12px', width: '200px' }}>Ações</th>
                   </tr>
                 </thead>
                 <tbody>
                   {admins.map(a => (
-                    <tr key={a.id} style={{ borderBottom: '1px solid #eee' }}>
-                      <td style={{ padding: '12px', fontWeight: 'bold' }}>{a.email} {session?.user?.email === a.email && <span style={{fontSize: '0.8rem', color: '#888', fontWeight: 'normal'}}>(Tu)</span>}</td>
-                      <td style={{ padding: '12px' }}>{a.role === 'super_admin' ? 'Super Admin' : a.role === 'sales' ? 'Comercial' : 'Admin'}</td>
-                      <td style={{ padding: '12px' }}>{new Date(a.created_at).toLocaleDateString('pt-PT')}</td>
+                    <tr key={a.id} style={{ borderBottom: '1px solid #eee', background: !a.is_active ? '#f5f5f5' : 'transparent' }}>
+                      <td style={{ padding: '12px', fontWeight: 'bold', color: !a.is_active ? '#999' : 'inherit' }}>{a.email} {session?.user?.email === a.email && <span style={{fontSize: '0.8rem', color: '#888', fontWeight: 'normal'}}>(Tu)</span>}</td>
+                      <td style={{ padding: '12px', color: !a.is_active ? '#999' : 'inherit' }}>{a.role === 'super_admin' ? 'Super Admin' : a.role === 'sales' ? 'Comercial' : 'Admin'}</td>
                       <td style={{ padding: '12px' }}>
-                        {session?.user?.email !== a.email && (
-                          <button onClick={() => handleDeleteAdmin(a.id)} style={{ padding: '6px 12px', background: '#ffebee', color: '#c62828', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Apagar</button>
+                        <span style={{ padding: '4px 8px', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 'bold', background: a.is_active ? '#e8f5e9' : '#ffebee', color: a.is_active ? '#2e7d32' : '#c62828' }}>
+                          {a.is_active ? 'Ativo' : 'Inativo'}
+                        </span>
+                      </td>
+                      <td style={{ padding: '12px', color: !a.is_active ? '#999' : 'inherit' }}>{new Date(a.created_at).toLocaleDateString('pt-PT')}</td>
+                      <td style={{ padding: '12px' }}>
+                        {session?.user?.email !== a.email && a.is_active && (
+                          <>
+                            <button onClick={() => {
+                              setEditingAdminId(a.id);
+                              setNewAdminEmail(a.email);
+                              setNewAdminRole(a.role);
+                              setEditingAdminIsActive(a.is_active);
+                            }} style={{ padding: '6px 12px', background: '#fff3e0', color: '#ef6c00', border: 'none', borderRadius: '4px', cursor: 'pointer', marginRight: '10px' }}>Editar</button>
+                            <button onClick={() => handleInactivateAdminClick(a.id)} style={{ padding: '6px 12px', background: '#ffebee', color: '#c62828', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Inativar</button>
+                          </>
                         )}
                       </td>
                     </tr>
                   ))}
                   {admins.length === 0 && (
-                    <tr><td colSpan={3} style={{ padding: '20px', textAlign: 'center', color: '#888' }}>Sem dados.</td></tr>
+                    <tr><td colSpan={5} style={{ padding: '20px', textAlign: 'center', color: '#888' }}>Sem dados.</td></tr>
                   )}
                 </tbody>
               </table>
+
+              {/* Modals e Forms Inline para Admins */}
+              {editingAdminId && (
+                <div style={{ marginTop: '40px', padding: '20px', background: '#fff3e0', borderRadius: '8px', border: '1px solid #ffe0b2' }}>
+                  <h3 style={{ marginBottom: '15px' }}>Editar Administrador</h3>
+                  <form autoComplete="off" onSubmit={handleEditAdminSubmit} style={{ display: 'flex', gap: '15px', flexWrap: 'wrap', alignItems: 'center' }}>
+                    <input type="email" value={newAdminEmail} onChange={e=>setNewAdminEmail(e.target.value)} placeholder="Email" style={{ flex: 1, minWidth: '200px', padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }} />
+                    <input type="password" value={newAdminPassword} onChange={e=>setNewAdminPassword(e.target.value)} placeholder="Nova password (deixe em branco para manter)" style={{ flex: 1, minWidth: '250px', padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }} />
+                    <select value={newAdminRole} onChange={e=>setNewAdminRole(e.target.value)} style={{ flex: 1, minWidth: '150px', padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }}>
+                      <option value="admin">Administrador Geral</option>
+                      <option value="sales">Comercial (Vendas)</option>
+                    </select>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                      <input type="checkbox" checked={editingAdminIsActive} onChange={e=>setEditingAdminIsActive(e.target.checked)} />
+                      Ativo
+                    </label>
+                    <button type="submit" style={{ padding: '10px 20px', background: '#ef6c00', color: 'white', fontWeight: 'bold', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Salvar Alterações</button>
+                    <button type="button" onClick={() => setEditingAdminId(null)} style={{ padding: '10px 20px', background: '#ccc', color: '#333', fontWeight: 'bold', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Cancelar</button>
+                  </form>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* TAB O MEU PERFIL */}
+          {activeTab === 'perfil' && (
+            <div>
+              <h2 style={{ marginBottom: '20px' }}>O Meu Perfil</h2>
+              <p style={{ marginBottom: '30px', color: '#666' }}>Estes dados serão apresentados na sua página pública de vendedor.</p>
+              
+              {status && <div style={{ padding: '15px', background: '#e0f7fa', color: '#006064', marginBottom: '20px', borderRadius: '8px' }}>{status}</div>}
+
+              {profileLoading ? <p>A carregar perfil...</p> : (
+                <form onSubmit={handleSaveProfile} style={{ maxWidth: '600px' }}>
+                  <div style={{ marginBottom: '20px' }}>
+                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Nome / Empresa</label>
+                    <input required type="text" value={profileName} onChange={e=>setProfileName(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }} />
+                  </div>
+                  <div style={{ marginBottom: '20px' }}>
+                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Contacto Telefónico</label>
+                    <input type="text" value={profilePhone} onChange={e=>setProfilePhone(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }} />
+                  </div>
+                  <div style={{ marginBottom: '20px' }}>
+                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Imagem de Perfil (URL ou Faça Upload de uma viatura e copie o link)</label>
+                    <input type="text" value={profileImage} onChange={e=>setProfileImage(e.target.value)} placeholder="https://..." style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }} />
+                    {profileImage && <img src={profileImage} style={{ width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover', marginTop: '10px' }} />}
+                  </div>
+                  <div style={{ marginBottom: '20px' }}>
+                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Imagem de Capa (URL)</label>
+                    <input type="text" value={profileCover} onChange={e=>setProfileCover(e.target.value)} placeholder="https://..." style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }} />
+                    {profileCover && <img src={profileCover} style={{ width: '100%', height: '120px', borderRadius: '8px', objectFit: 'cover', marginTop: '10px' }} />}
+                  </div>
+                  <div style={{ marginBottom: '20px' }}>
+                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Biografia</label>
+                    <textarea value={profileBio} onChange={e=>setProfileBio(e.target.value)} rows={4} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }}></textarea>
+                  </div>
+                  <div style={{ marginBottom: '30px' }}>
+                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Histórico / Experiência</label>
+                    <textarea value={profileHistory} onChange={e=>setProfileHistory(e.target.value)} rows={3} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }}></textarea>
+                  </div>
+                  <button type="submit" style={{ padding: '15px 30px', background: '#00d2ff', color: 'black', fontWeight: 'bold', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '1.1rem' }}>Salvar Perfil</button>
+                </form>
+              )}
             </div>
           )}
 
         </div>
       </div>
+
+      {/* Transfer Vehicles Modal */}
+      {transferModalOpen && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
+          <div style={{ background: 'white', padding: '30px', borderRadius: '12px', maxWidth: '500px', width: '100%' }}>
+            <h3 style={{ marginBottom: '15px' }}>Transferir Viaturas</h3>
+            <p style={{ marginBottom: '20px', color: '#666' }}>
+              Selecione o vendedor para o qual deseja transferir as viaturas. Apenas utilizadores ativos aparecem na lista.
+            </p>
+            <select value={transferTargetUserId} onChange={e => setTransferTargetUserId(e.target.value)} style={{ width: '100%', padding: '12px', borderRadius: '6px', border: '1px solid #ccc', marginBottom: '20px' }}>
+              <option value="">Selecione um vendedor...</option>
+              {admins.filter(a => a.is_active && a.id !== inactivatingAdminId).map(a => (
+                <option key={a.id} value={a.id}>{a.email} ({a.role})</option>
+              ))}
+            </select>
+            <div style={{ display: 'flex', gap: '15px', justifyContent: 'flex-end' }}>
+              <button onClick={() => {
+                setTransferModalOpen(false);
+                setInactivatingAdminId(null);
+                setTransferVehicleId(null);
+              }} style={{ padding: '10px 20px', background: '#eee', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Cancelar</button>
+              <button onClick={handleTransferVehiclesSubmit} style={{ padding: '10px 20px', background: '#00d2ff', fontWeight: 'bold', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Confirmar Transferência</button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

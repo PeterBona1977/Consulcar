@@ -16,15 +16,19 @@ export async function GET(request: Request) {
     const { data: rolesData, error: rolesError } = await supabaseAdmin.from('user_roles').select('*');
     if (rolesError) throw rolesError;
     
-    const roleMap = new Map(rolesData.map(r => [r.user_id, r.role]));
+    const roleMap = new Map(rolesData.map(r => [r.user_id, r]));
 
-    const safeUsers = authData.users.map(u => ({
-      id: u.id,
-      email: u.email,
-      created_at: u.created_at,
-      last_sign_in_at: u.last_sign_in_at,
-      role: roleMap.get(u.id) || 'desconhecido'
-    }));
+    const safeUsers = authData.users.map(u => {
+      const userRoleData = roleMap.get(u.id);
+      return {
+        id: u.id,
+        email: u.email,
+        created_at: u.created_at,
+        last_sign_in_at: u.last_sign_in_at,
+        role: userRoleData?.role || 'desconhecido',
+        is_active: userRoleData?.is_active ?? true
+      };
+    });
 
     return NextResponse.json({ users: safeUsers });
   } catch (error: any) {
@@ -56,7 +60,8 @@ export async function POST(request: Request) {
     // Set role
     const { error: roleError } = await supabaseAdmin.from('user_roles').insert({
       user_id: data.user.id,
-      role: role
+      role: role,
+      is_active: true
     });
 
     if (roleError) {
@@ -65,7 +70,46 @@ export async function POST(request: Request) {
       throw roleError;
     }
 
-    return NextResponse.json({ user: { id: data.user.id, email: data.user.email, role } });
+    return NextResponse.json({ user: { id: data.user.id, email: data.user.email, role, is_active: true } });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
+export async function PATCH(request: Request) {
+  try {
+    const user = await verifyAdminAuth(request);
+    if (!user) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
+    if (user.role !== 'super_admin') return NextResponse.json({ error: 'Apenas o super_admin pode editar utilizadores' }, { status: 403 });
+
+    const { id, email, password, role, is_active } = await request.json();
+    if (!id) return NextResponse.json({ error: 'ID do utilizador é obrigatório' }, { status: 400 });
+    
+    if (id === user.id && is_active === false) {
+      return NextResponse.json({ error: 'Não pode inativar a sua própria conta' }, { status: 400 });
+    }
+
+    // Update Auth Email / Password if provided
+    const authUpdates: any = {};
+    if (email) authUpdates.email = email;
+    if (password) authUpdates.password = password;
+    
+    if (Object.keys(authUpdates).length > 0) {
+      const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(id, authUpdates);
+      if (authError) throw authError;
+    }
+
+    // Update Role / Active Status
+    const roleUpdates: any = {};
+    if (role) roleUpdates.role = role;
+    if (is_active !== undefined) roleUpdates.is_active = is_active;
+
+    if (Object.keys(roleUpdates).length > 0) {
+      const { error: roleError } = await supabaseAdmin.from('user_roles').update(roleUpdates).eq('user_id', id);
+      if (roleError) throw roleError;
+    }
+
+    return NextResponse.json({ success: true });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
@@ -84,6 +128,13 @@ export async function DELETE(request: Request) {
     
     if (userId === user.id) {
       return NextResponse.json({ error: 'Não pode apagar a sua própria conta' }, { status: 400 });
+    }
+
+    // Check if user has vehicles
+    const { data: vehicles, error: checkError } = await supabaseAdmin.from('vehicles').select('id').eq('user_id', userId).limit(1);
+    if (checkError) throw checkError;
+    if (vehicles && vehicles.length > 0) {
+      return NextResponse.json({ error: 'Este utilizador tem viaturas associadas. Por favor, transfira as viaturas ou inative a conta em vez de a eliminar.' }, { status: 400 });
     }
 
     const { error } = await supabaseAdmin.auth.admin.deleteUser(userId);
