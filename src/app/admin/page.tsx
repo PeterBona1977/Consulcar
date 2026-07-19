@@ -1209,14 +1209,32 @@ export default function AdminPage() {
                     <input type="text" value={profilePhone} onChange={e=>setProfilePhone(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }} />
                   </div>
                   <div style={{ marginBottom: '20px' }}>
-                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Imagem de Perfil (Dispositivo ou Computador)</label>
-                    <input type="file" accept="image/*" onChange={handleProfileImageUpload} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ccc', background: '#fff' }} />
-                    {profileImage && <img src={profileImage} style={{ width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover', marginTop: '10px' }} />}
+                    <label style={{ display: 'block', marginBottom: '10px', fontWeight: 'bold' }}>Imagem de Perfil</label>
+                    <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                      <label style={{ flex: 1, minWidth: '150px', textAlign: 'center', background: '#f5f5f5', padding: '12px', borderRadius: '6px', cursor: 'pointer', border: '1px solid #ccc', fontWeight: 'bold' }}>
+                        📷 Tirar Foto
+                        <input type="file" accept="image/*" capture="user" onChange={handleProfileImageUpload} style={{ display: 'none' }} />
+                      </label>
+                      <label style={{ flex: 1, minWidth: '150px', textAlign: 'center', background: '#f5f5f5', padding: '12px', borderRadius: '6px', cursor: 'pointer', border: '1px solid #ccc', fontWeight: 'bold' }}>
+                        📂 Escolher Ficheiro
+                        <input type="file" accept="image/*" onChange={handleProfileImageUpload} style={{ display: 'none' }} />
+                      </label>
+                    </div>
+                    {profileImage && <img src={profileImage} style={{ width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover', marginTop: '15px' }} />}
                   </div>
                   <div style={{ marginBottom: '20px' }}>
-                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Imagem de Capa (Dispositivo ou Computador)</label>
-                    <input type="file" accept="image/*" onChange={handleProfileCoverUpload} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ccc', background: '#fff' }} />
-                    {profileCover && <img src={profileCover} style={{ width: '100%', height: '120px', borderRadius: '8px', objectFit: 'cover', marginTop: '10px' }} />}
+                    <label style={{ display: 'block', marginBottom: '10px', fontWeight: 'bold' }}>Imagem de Capa</label>
+                    <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                      <label style={{ flex: 1, minWidth: '150px', textAlign: 'center', background: '#f5f5f5', padding: '12px', borderRadius: '6px', cursor: 'pointer', border: '1px solid #ccc', fontWeight: 'bold' }}>
+                        📸 Tirar Foto
+                        <input type="file" accept="image/*" capture="environment" onChange={handleProfileCoverUpload} style={{ display: 'none' }} />
+                      </label>
+                      <label style={{ flex: 1, minWidth: '150px', textAlign: 'center', background: '#f5f5f5', padding: '12px', borderRadius: '6px', cursor: 'pointer', border: '1px solid #ccc', fontWeight: 'bold' }}>
+                        📂 Escolher Ficheiro
+                        <input type="file" accept="image/*" onChange={handleProfileCoverUpload} style={{ display: 'none' }} />
+                      </label>
+                    </div>
+                    {profileCover && <img src={profileCover} style={{ width: '100%', height: '120px', borderRadius: '8px', objectFit: 'cover', marginTop: '15px' }} />}
                   </div>
                   <div style={{ marginBottom: '20px' }}>
                     <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Biografia</label>
