@@ -931,31 +931,33 @@ export default function AdminPage() {
                 <button type="submit" style={{ padding: '10px 20px', background: '#00d2ff', color: 'black', fontWeight: 'bold', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Adicionar</button>
               </form>
 
-              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-                <thead>
-                  <tr style={{ background: '#eee' }}>
-                    <th style={{ padding: '12px' }}>Categoria</th>
-                    <th style={{ padding: '12px' }}>Termo Original (Alemão)</th>
-                    <th style={{ padding: '12px' }}>Tradução (PT)</th>
-                    <th style={{ padding: '12px', width: '80px' }}>Ações</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {dictionary.map(d => (
-                    <tr key={d.id} style={{ borderBottom: '1px solid #eee' }}>
-                      <td style={{ padding: '12px' }}><span style={{ padding: '4px 8px', background: d.category === 'equipment' ? '#e3f2fd' : '#f3e5f5', borderRadius: '4px', fontSize: '0.8rem' }}>{d.category}</span></td>
-                      <td style={{ padding: '12px', fontWeight: 'bold' }}>{d.foreign_term}</td>
-                      <td style={{ padding: '12px' }}>{d.pt_term}</td>
-                      <td style={{ padding: '12px' }}>
-                        <button onClick={() => handleDeleteDict(d.id)} style={{ padding: '6px 12px', background: '#ffebee', color: '#c62828', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Apagar</button>
-                      </td>
+              <div style={{ overflowX: 'auto', width: '100%' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '600px' }}>
+                  <thead>
+                    <tr style={{ background: '#eee' }}>
+                      <th style={{ padding: '12px' }}>Categoria</th>
+                      <th style={{ padding: '12px' }}>Termo Original (Alemão)</th>
+                      <th style={{ padding: '12px' }}>Tradução (PT)</th>
+                      <th style={{ padding: '12px', width: '80px' }}>Ações</th>
                     </tr>
-                  ))}
-                  {dictionary.length === 0 && (
-                    <tr><td colSpan={4} style={{ padding: '20px', textAlign: 'center', color: '#888' }}>O dicionário está vazio.</td></tr>
-                  )}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {dictionary.map(d => (
+                      <tr key={d.id} style={{ borderBottom: '1px solid #eee' }}>
+                        <td style={{ padding: '12px' }}><span style={{ padding: '4px 8px', background: d.category === 'equipment' ? '#e3f2fd' : '#f3e5f5', borderRadius: '4px', fontSize: '0.8rem' }}>{d.category}</span></td>
+                        <td style={{ padding: '12px', fontWeight: 'bold' }}>{d.foreign_term}</td>
+                        <td style={{ padding: '12px' }}>{d.pt_term}</td>
+                        <td style={{ padding: '12px' }}>
+                          <button onClick={() => handleDeleteDict(d.id)} style={{ padding: '6px 12px', background: '#ffebee', color: '#c62828', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Apagar</button>
+                        </td>
+                      </tr>
+                    ))}
+                    {dictionary.length === 0 && (
+                      <tr><td colSpan={4} style={{ padding: '20px', textAlign: 'center', color: '#888' }}>O dicionário está vazio.</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
 
@@ -1040,47 +1042,49 @@ export default function AdminPage() {
                 <button type="submit" style={{ padding: '10px 20px', background: '#000', color: 'white', fontWeight: 'bold', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Criar Utilizador</button>
               </form>
 
-              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-                <thead>
-                  <tr style={{ background: '#eee' }}>
-                    <th style={{ padding: '12px' }}>Email</th>
-                    <th style={{ padding: '12px' }}>Função</th>
-                    <th style={{ padding: '12px' }}>Estado</th>
-                    <th style={{ padding: '12px' }}>Criado em</th>
-                    <th style={{ padding: '12px', width: '200px' }}>Ações</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {admins.map(a => (
-                    <tr key={a.id} style={{ borderBottom: '1px solid #eee', background: !a.is_active ? '#f5f5f5' : 'transparent' }}>
-                      <td style={{ padding: '12px', fontWeight: 'bold', color: !a.is_active ? '#999' : 'inherit' }}>{a.email} {session?.user?.email === a.email && <span style={{fontSize: '0.8rem', color: '#888', fontWeight: 'normal'}}>(Tu)</span>}</td>
-                      <td style={{ padding: '12px', color: !a.is_active ? '#999' : 'inherit' }}>{a.role === 'super_admin' ? 'Super Admin' : a.role === 'sales' ? 'Comercial' : 'Admin'}</td>
-                      <td style={{ padding: '12px' }}>
-                        <span style={{ padding: '4px 8px', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 'bold', background: a.is_active ? '#e8f5e9' : '#ffebee', color: a.is_active ? '#2e7d32' : '#c62828' }}>
-                          {a.is_active ? 'Ativo' : 'Inativo'}
-                        </span>
-                      </td>
-                      <td style={{ padding: '12px', color: !a.is_active ? '#999' : 'inherit' }}>{new Date(a.created_at).toLocaleDateString('pt-PT')}</td>
-                      <td style={{ padding: '12px' }}>
-                        {session?.user?.email !== a.email && a.is_active && (
-                          <>
-                            <button onClick={() => {
-                              setEditingAdminId(a.id);
-                              setNewAdminEmail(a.email);
-                              setNewAdminRole(a.role);
-                              setEditingAdminIsActive(a.is_active);
-                            }} style={{ padding: '6px 12px', background: '#fff3e0', color: '#ef6c00', border: 'none', borderRadius: '4px', cursor: 'pointer', marginRight: '10px' }}>Editar</button>
-                            <button onClick={() => handleInactivateAdminClick(a.id)} style={{ padding: '6px 12px', background: '#ffebee', color: '#c62828', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Inativar</button>
-                          </>
-                        )}
-                      </td>
+              <div style={{ overflowX: 'auto', width: '100%' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '700px' }}>
+                  <thead>
+                    <tr style={{ background: '#eee' }}>
+                      <th style={{ padding: '12px' }}>Email</th>
+                      <th style={{ padding: '12px' }}>Função</th>
+                      <th style={{ padding: '12px' }}>Estado</th>
+                      <th style={{ padding: '12px' }}>Criado em</th>
+                      <th style={{ padding: '12px', width: '200px' }}>Ações</th>
                     </tr>
-                  ))}
-                  {admins.length === 0 && (
-                    <tr><td colSpan={5} style={{ padding: '20px', textAlign: 'center', color: '#888' }}>Sem dados.</td></tr>
-                  )}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {admins.map(a => (
+                      <tr key={a.id} style={{ borderBottom: '1px solid #eee', background: !a.is_active ? '#f5f5f5' : 'transparent' }}>
+                        <td style={{ padding: '12px', fontWeight: 'bold', color: !a.is_active ? '#999' : 'inherit' }}>{a.email} {session?.user?.email === a.email && <span style={{fontSize: '0.8rem', color: '#888', fontWeight: 'normal'}}>(Tu)</span>}</td>
+                        <td style={{ padding: '12px', color: !a.is_active ? '#999' : 'inherit' }}>{a.role === 'super_admin' ? 'Super Admin' : a.role === 'sales' ? 'Comercial' : 'Admin'}</td>
+                        <td style={{ padding: '12px' }}>
+                          <span style={{ padding: '4px 8px', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 'bold', background: a.is_active ? '#e8f5e9' : '#ffebee', color: a.is_active ? '#2e7d32' : '#c62828' }}>
+                            {a.is_active ? 'Ativo' : 'Inativo'}
+                          </span>
+                        </td>
+                        <td style={{ padding: '12px', color: !a.is_active ? '#999' : 'inherit' }}>{new Date(a.created_at).toLocaleDateString('pt-PT')}</td>
+                        <td style={{ padding: '12px' }}>
+                          {session?.user?.email !== a.email && a.is_active && (
+                            <>
+                              <button onClick={() => {
+                                setEditingAdminId(a.id);
+                                setNewAdminEmail(a.email);
+                                setNewAdminRole(a.role);
+                                setEditingAdminIsActive(a.is_active);
+                              }} style={{ padding: '6px 12px', background: '#fff3e0', color: '#ef6c00', border: 'none', borderRadius: '4px', cursor: 'pointer', marginRight: '10px' }}>Editar</button>
+                              <button onClick={() => handleInactivateAdminClick(a.id)} style={{ padding: '6px 12px', background: '#ffebee', color: '#c62828', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Inativar</button>
+                            </>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                    {admins.length === 0 && (
+                      <tr><td colSpan={5} style={{ padding: '20px', textAlign: 'center', color: '#888' }}>Sem dados.</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
 
               {/* Modals e Forms Inline para Admins */}
               {editingAdminId && (
