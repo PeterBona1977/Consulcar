@@ -619,6 +619,16 @@ export default function AdminPage() {
         
         .admin-sections-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
         .admin-spec-row { display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; }
+
+        /* Responsive Tables for Mobile */
+        .admin-table-wrapper { overflow-x: visible; width: 100%; }
+        table { width: 100%; border-collapse: collapse; text-align: left; display: block; }
+        thead { display: none; }
+        tbody { display: block; width: 100%; }
+        tr { display: flex; flex-direction: column; margin-bottom: 20px; background: #fff; padding: 15px; border-radius: 12px; border: 1px solid #ddd; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        td { display: flex; flex-direction: column; padding: 10px 0; border-bottom: 1px solid #eee; }
+        td:last-child { border-bottom: none; }
+        td::before { content: attr(data-label); font-size: 0.75rem; font-weight: bold; color: #888; text-transform: uppercase; margin-bottom: 4px; }
         
         /* Desktop Override */
         @media (min-width: 768px) {
@@ -633,6 +643,14 @@ export default function AdminPage() {
           .admin-flex-row button { width: auto; }
           
           .admin-sections-grid { grid-template-columns: 1fr 1fr; gap: 40px; }
+
+          .admin-table-wrapper { overflow-x: auto; }
+          table { display: table; }
+          thead { display: table-header-group; }
+          tbody { display: table-row-group; }
+          tr { display: table-row; margin-bottom: 0; background: transparent; padding: 0; border: none; border-bottom: 1px solid #eee; box-shadow: none; }
+          td { display: table-cell; padding: 12px; border-bottom: none; }
+          td::before { display: none; }
           .admin-spec-row { flex-direction: row; }
         }
       `}</style>
@@ -885,9 +903,9 @@ export default function AdminPage() {
 
           {/* TAB GESTÃO DE VIATURAS */}
           {activeTab === 'gestao' && (
-            <div style={{ overflowX: 'auto' }}>
+            <div className="admin-table-wrapper">
               <h2 style={{ marginBottom: '20px' }}>Viaturas Publicadas</h2>
-              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '800px' }}>
+              <table style={{ minWidth: '100%' }}>
                 <thead>
                   <tr style={{ background: '#eee' }}>
                     <th style={{ padding: '12px' }}>Imagem</th>
@@ -898,25 +916,25 @@ export default function AdminPage() {
                 </thead>
                 <tbody>
                   {publishedVehicles.map(v => (
-                    <tr key={v.id} style={{ borderBottom: '1px solid #eee' }}>
-                      <td style={{ padding: '12px' }}>
+                    <tr key={v.id}>
+                      <td data-label="Imagem">
                         {v.image ? (
                           <img src={v.image} alt={v.title} style={{ width: '80px', height: '60px', objectFit: 'cover', borderRadius: '4px' }} />
                         ) : (
                           <div style={{ width: '80px', height: '60px', background: '#ccc', borderRadius: '4px' }}></div>
                         )}
                       </td>
-                      <td style={{ padding: '12px', fontWeight: 'bold', wordBreak: 'break-word', maxWidth: '300px' }}>{v.title}</td>
-                      <td style={{ padding: '12px', wordBreak: 'break-word', maxWidth: '200px' }}>{v.price}</td>
-                      <td style={{ padding: '12px' }}>
-                        <Link href={`/viaturas/${v.id}`} target="_blank" style={{ display: 'inline-block', padding: '6px 12px', background: '#e3f2fd', color: '#1565c0', textDecoration: 'none', borderRadius: '4px', marginRight: '10px' }}>Ver</Link>
-                        <button onClick={() => handleEditVehicle(v)} style={{ padding: '6px 12px', background: '#fff3e0', color: '#ef6c00', border: 'none', borderRadius: '4px', cursor: 'pointer', marginRight: '10px' }}>Editar</button>
+                      <td data-label="Título" style={{ fontWeight: 'bold', wordBreak: 'break-word', maxWidth: '300px' }}>{v.title}</td>
+                      <td data-label="Preço" style={{ wordBreak: 'break-word', maxWidth: '200px' }}>{v.price}</td>
+                      <td data-label="Ações">
+                        <Link href={`/viaturas/${v.id}`} target="_blank" style={{ display: 'inline-block', padding: '6px 12px', background: '#e3f2fd', color: '#1565c0', textDecoration: 'none', borderRadius: '4px', marginRight: '10px', marginBottom: '5px' }}>Ver</Link>
+                        <button onClick={() => handleEditVehicle(v)} style={{ padding: '6px 12px', background: '#fff3e0', color: '#ef6c00', border: 'none', borderRadius: '4px', cursor: 'pointer', marginRight: '10px', marginBottom: '5px' }}>Editar</button>
                         <button onClick={() => {
                           setTransferVehicleId(v.id);
                           setTransferTargetUserId("");
                           setTransferModalOpen(true);
-                        }} style={{ padding: '6px 12px', background: '#e8f5e9', color: '#2e7d32', border: 'none', borderRadius: '4px', cursor: 'pointer', marginRight: '10px' }}>Transferir</button>
-                        <button onClick={() => handleDeleteVehicle(v.id)} style={{ padding: '6px 12px', background: '#ffebee', color: '#c62828', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Apagar</button>
+                        }} style={{ padding: '6px 12px', background: '#e8f5e9', color: '#2e7d32', border: 'none', borderRadius: '4px', cursor: 'pointer', marginRight: '10px', marginBottom: '5px' }}>Transferir</button>
+                        <button onClick={() => handleDeleteVehicle(v.id)} style={{ padding: '6px 12px', background: '#ffebee', color: '#c62828', border: 'none', borderRadius: '4px', cursor: 'pointer', marginBottom: '5px' }}>Apagar</button>
                       </td>
                     </tr>
                   ))}
@@ -944,8 +962,8 @@ export default function AdminPage() {
                 <button type="submit" style={{ padding: '10px 20px', background: '#00d2ff', color: 'black', fontWeight: 'bold', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Adicionar</button>
               </form>
 
-              <div style={{ overflowX: 'auto', width: '100%' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '600px' }}>
+              <div className="admin-table-wrapper">
+                <table style={{ minWidth: '100%' }}>
                   <thead>
                     <tr style={{ background: '#eee' }}>
                       <th style={{ padding: '12px' }}>Categoria</th>
@@ -956,11 +974,11 @@ export default function AdminPage() {
                   </thead>
                   <tbody>
                     {dictionary.map(d => (
-                      <tr key={d.id} style={{ borderBottom: '1px solid #eee' }}>
-                        <td style={{ padding: '12px' }}><span style={{ padding: '4px 8px', background: d.category === 'equipment' ? '#e3f2fd' : '#f3e5f5', borderRadius: '4px', fontSize: '0.8rem' }}>{d.category}</span></td>
-                        <td style={{ padding: '12px', fontWeight: 'bold' }}>{d.foreign_term}</td>
-                        <td style={{ padding: '12px' }}>{d.pt_term}</td>
-                        <td style={{ padding: '12px' }}>
+                      <tr key={d.id}>
+                        <td data-label="Categoria"><span style={{ padding: '4px 8px', background: d.category === 'equipment' ? '#e3f2fd' : '#f3e5f5', borderRadius: '4px', fontSize: '0.8rem' }}>{d.category}</span></td>
+                        <td data-label="Termo Original" style={{ fontWeight: 'bold' }}>{d.foreign_term}</td>
+                        <td data-label="Tradução (PT)">{d.pt_term}</td>
+                        <td data-label="Ações">
                           <button onClick={() => handleDeleteDict(d.id)} style={{ padding: '6px 12px', background: '#ffebee', color: '#c62828', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Apagar</button>
                         </td>
                       </tr>
@@ -980,8 +998,8 @@ export default function AdminPage() {
               <h2 style={{ marginBottom: '20px' }}>Caixa de Entrada e CRM</h2>
               <p style={{ marginBottom: '30px', color: '#666' }}>Lista de pedidos de contacto e potenciais clientes angariados na Homepage.</p>
               
-              <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '800px' }}>
+              <div className="admin-table-wrapper">
+                <table style={{ minWidth: '100%' }}>
                   <thead>
                     <tr style={{ background: '#eee', borderBottom: '2px solid #ccc' }}>
                       <th style={{ padding: '12px' }}>Data</th>
@@ -993,21 +1011,21 @@ export default function AdminPage() {
                   </thead>
                   <tbody>
                     {leads.map(lead => (
-                      <tr key={lead.id} style={{ borderBottom: '1px solid #eee', background: lead.status === 'novo' ? 'rgba(0, 210, 255, 0.05)' : 'transparent' }}>
-                        <td style={{ padding: '12px', fontSize: '0.9rem', color: '#666' }}>{new Date(lead.created_at).toLocaleString('pt-PT')}</td>
-                        <td style={{ padding: '12px' }}>
+                      <tr key={lead.id} style={{ background: lead.status === 'novo' ? 'rgba(0, 210, 255, 0.05)' : 'transparent' }}>
+                        <td data-label="Data" style={{ fontSize: '0.9rem', color: '#666' }}>{new Date(lead.created_at).toLocaleString('pt-PT')}</td>
+                        <td data-label="Cliente">
                           <div style={{ fontWeight: 'bold' }}>{lead.contact_name}</div>
                           {lead.entity_type === 'coletiva' && <div style={{ fontSize: '0.8rem', color: '#888' }}>Empresa: {lead.company_name}</div>}
                         </td>
-                        <td style={{ padding: '12px' }}>
+                        <td data-label="Contacto">
                           <div><a href={`mailto:${lead.email}`} style={{ color: 'var(--accent-primary)', textDecoration: 'none' }}>{lead.email}</a></div>
                           <div><a href={`tel:${lead.phone}`} style={{ color: '#666', textDecoration: 'none' }}>{lead.phone}</a></div>
                         </td>
-                        <td style={{ padding: '12px' }}>
+                        <td data-label="Viatura">
                           <div style={{ fontWeight: 'bold' }}>{lead.brand} {lead.model}</div>
                           {lead.extras && <div style={{ fontSize: '0.85rem', color: '#666', marginTop: '4px', maxWidth: '250px' }}>Extras: {lead.extras}</div>}
                         </td>
-                        <td style={{ padding: '12px' }}>
+                        <td data-label="Estado">
                           <select 
                             value={lead.status || 'novo'} 
                             onChange={(e) => updateLeadStatus(lead.id, e.target.value)}
@@ -1017,7 +1035,9 @@ export default function AdminPage() {
                               border: '1px solid #ccc',
                               background: lead.status === 'novo' ? '#e3f2fd' : lead.status === 'contactado' ? '#e8f5e9' : '#fff',
                               color: '#333',
-                              fontWeight: lead.status === 'novo' ? 'bold' : 'normal'
+                              fontWeight: lead.status === 'novo' ? 'bold' : 'normal',
+                              width: '100%',
+                              maxWidth: '200px'
                             }}
                           >
                             <option value="novo">🔵 Novo</option>
@@ -1055,8 +1075,8 @@ export default function AdminPage() {
                 <button type="submit" style={{ padding: '10px 20px', background: '#000', color: 'white', fontWeight: 'bold', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Criar Utilizador</button>
               </form>
 
-              <div style={{ overflowX: 'auto', width: '100%' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '700px' }}>
+              <div className="admin-table-wrapper">
+                <table style={{ minWidth: '100%' }}>
                   <thead>
                     <tr style={{ background: '#eee' }}>
                       <th style={{ padding: '12px' }}>Email</th>
@@ -1068,16 +1088,16 @@ export default function AdminPage() {
                   </thead>
                   <tbody>
                     {admins.map(a => (
-                      <tr key={a.id} style={{ borderBottom: '1px solid #eee', background: !a.is_active ? '#f5f5f5' : 'transparent' }}>
-                        <td style={{ padding: '12px', fontWeight: 'bold', color: !a.is_active ? '#999' : 'inherit' }}>{a.email} {session?.user?.email === a.email && <span style={{fontSize: '0.8rem', color: '#888', fontWeight: 'normal'}}>(Tu)</span>}</td>
-                        <td style={{ padding: '12px', color: !a.is_active ? '#999' : 'inherit' }}>{a.role === 'super_admin' ? 'Super Admin' : a.role === 'sales' ? 'Comercial' : 'Admin'}</td>
-                        <td style={{ padding: '12px' }}>
-                          <span style={{ padding: '4px 8px', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 'bold', background: a.is_active ? '#e8f5e9' : '#ffebee', color: a.is_active ? '#2e7d32' : '#c62828' }}>
+                      <tr key={a.id} style={{ background: !a.is_active ? '#f5f5f5' : 'transparent' }}>
+                        <td data-label="Email" style={{ fontWeight: 'bold', color: !a.is_active ? '#999' : 'inherit', wordBreak: 'break-all' }}>{a.email} {session?.user?.email === a.email && <span style={{fontSize: '0.8rem', color: '#888', fontWeight: 'normal'}}>(Tu)</span>}</td>
+                        <td data-label="Função" style={{ color: !a.is_active ? '#999' : 'inherit' }}>{a.role === 'super_admin' ? 'Super Admin' : a.role === 'sales' ? 'Comercial' : 'Admin'}</td>
+                        <td data-label="Estado">
+                          <span style={{ padding: '4px 8px', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 'bold', background: a.is_active ? '#e8f5e9' : '#ffebee', color: a.is_active ? '#2e7d32' : '#c62828', display: 'inline-block' }}>
                             {a.is_active ? 'Ativo' : 'Inativo'}
                           </span>
                         </td>
-                        <td style={{ padding: '12px', color: !a.is_active ? '#999' : 'inherit' }}>{new Date(a.created_at).toLocaleDateString('pt-PT')}</td>
-                        <td style={{ padding: '12px' }}>
+                        <td data-label="Criado em" style={{ color: !a.is_active ? '#999' : 'inherit' }}>{new Date(a.created_at).toLocaleDateString('pt-PT')}</td>
+                        <td data-label="Ações">
                           {session?.user?.email !== a.email && a.is_active && (
                             <>
                               <button onClick={() => {
