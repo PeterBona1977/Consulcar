@@ -928,14 +928,16 @@ export default function AdminPage() {
                       <td data-label="Título" style={{ fontWeight: 'bold', wordBreak: 'break-word', maxWidth: '300px' }}>{v.title}</td>
                       <td data-label="Preço" style={{ wordBreak: 'break-word', maxWidth: '200px' }}>{v.price}</td>
                       <td data-label="Ações">
-                        <Link href={`/viaturas/${v.id}`} target="_blank" style={{ display: 'inline-block', padding: '6px 12px', background: '#e3f2fd', color: '#1565c0', textDecoration: 'none', borderRadius: '4px', marginRight: '10px', marginBottom: '5px' }}>Ver</Link>
-                        <button onClick={() => handleEditVehicle(v)} style={{ padding: '6px 12px', background: '#fff3e0', color: '#ef6c00', border: 'none', borderRadius: '4px', cursor: 'pointer', marginRight: '10px', marginBottom: '5px' }}>Editar</button>
-                        <button onClick={() => {
-                          setTransferVehicleId(v.id);
-                          setTransferTargetUserId("");
-                          setTransferModalOpen(true);
-                        }} style={{ padding: '6px 12px', background: '#e8f5e9', color: '#2e7d32', border: 'none', borderRadius: '4px', cursor: 'pointer', marginRight: '10px', marginBottom: '5px' }}>Transferir</button>
-                        <button onClick={() => handleDeleteVehicle(v.id)} style={{ padding: '6px 12px', background: '#ffebee', color: '#c62828', border: 'none', borderRadius: '4px', cursor: 'pointer', marginBottom: '5px' }}>Apagar</button>
+                        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                          <Link href={`/viaturas/${v.id}`} target="_blank" style={{ display: 'inline-block', padding: '6px 12px', background: '#e3f2fd', color: '#1565c0', textDecoration: 'none', borderRadius: '4px' }}>Ver</Link>
+                          <button onClick={() => handleEditVehicle(v)} style={{ padding: '6px 12px', background: '#fff3e0', color: '#ef6c00', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Editar</button>
+                          <button onClick={() => {
+                            setTransferVehicleId(v.id);
+                            setTransferTargetUserId("");
+                            setTransferModalOpen(true);
+                          }} style={{ padding: '6px 12px', background: '#e8f5e9', color: '#2e7d32', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Transferir</button>
+                          <button onClick={() => handleDeleteVehicle(v.id)} style={{ padding: '6px 12px', background: '#ffebee', color: '#c62828', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Apagar</button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -1100,15 +1102,15 @@ export default function AdminPage() {
                         <td data-label="Criado em" style={{ color: !a.is_active ? '#999' : 'inherit' }}>{new Date(a.created_at).toLocaleDateString('pt-PT')}</td>
                         <td data-label="Ações">
                           {session?.user?.email !== a.email && a.is_active && (
-                            <>
+                            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                               <button onClick={() => {
                                 setEditingAdminId(a.id);
                                 setNewAdminEmail(a.email);
                                 setNewAdminRole(a.role);
                                 setEditingAdminIsActive(a.is_active);
-                              }} style={{ padding: '6px 12px', background: '#fff3e0', color: '#ef6c00', border: 'none', borderRadius: '4px', cursor: 'pointer', marginRight: '10px' }}>Editar</button>
-                              <button onClick={() => handleInactivateAdminClick(a.id)} style={{ padding: '6px 12px', background: '#ffebee', color: '#c62828', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Inativar</button>
-                            </>
+                              }} style={{ padding: '6px 12px', background: '#fff3e0', color: '#ef6c00', border: 'none', borderRadius: '4px', cursor: 'pointer', flex: 1 }}>Editar</button>
+                              <button onClick={() => handleInactivateAdminClick(a.id)} style={{ padding: '6px 12px', background: '#ffebee', color: '#c62828', border: 'none', borderRadius: '4px', cursor: 'pointer', flex: 1 }}>Inativar</button>
+                            </div>
                           )}
                         </td>
                       </tr>
