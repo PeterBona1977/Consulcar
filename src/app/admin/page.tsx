@@ -794,8 +794,18 @@ export default function AdminPage() {
                         Total:{' '}
                         {(() => {
                           const parse = (v: any) => {
-                            const s = String(v || '').replace(/\s|€/g, '');
-                            if (s.includes(',')) return parseFloat(s.replace(/\./g, '').replace(',', '.')) || 0;
+                            let s = String(v || '').replace(/\s|€/g, '');
+                            if (s.includes(',') && s.includes('.')) {
+                              const lastComma = s.lastIndexOf(',');
+                              const lastDot = s.lastIndexOf('.');
+                              if (lastComma > lastDot) s = s.replace(/\./g, '').replace(',', '.');
+                              else s = s.replace(/,/g, '');
+                            } else if (s.includes(',')) {
+                              s = s.replace(',', '.');
+                            } else if (s.includes('.')) {
+                              const parts = s.split('.');
+                              if (parts[parts.length - 1].length === 3) s = s.replace(/\./g, '');
+                            }
                             return parseFloat(s) || 0;
                           };
                           const base = parse(carPrice);
